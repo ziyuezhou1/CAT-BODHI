@@ -3,18 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>猫猫盘串铺</title>
+    <title>猫猫盘珠日记</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
     <main class="game-shell">
       <header class="topbar pixel-panel">
         <div class="brand-lockup">
-          <div class="ui-emblem ui-tab" aria-hidden="true"></div>
-          <div>
-            <h1>猫猫盘串铺</h1>
+          <div class="brand-title-stack">
+            <img class="game-logo" src="assets/art/game-logo.png" alt="猫猫盘珠日记" />
+            <h1 class="visually-hidden">猫猫盘珠日记</h1>
             <p id="saveStatus">存档待同步</p>
           </div>
+          <button class="guide-button ghost-button" id="guideButton" type="button">
+            <span class="ui-icon sparkle" aria-hidden="true"></span>
+            <span>玩法</span>
+          </button>
         </div>
 
         <section class="resource-strip" aria-label="资源">
@@ -48,7 +52,15 @@
             <div class="stage-sky" aria-hidden="true"></div>
             <div class="stage-rail" aria-hidden="true"></div>
             <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
-            <div class="cat-layer" id="catLayer" aria-hidden="true"></div>
+            <div class="cat-layer" id="catLayer" aria-label="房间猫咪"></div>
+            <aside class="cat-group-panel pixel-panel" id="catGroupPanel" hidden>
+              <button class="cat-group-close ghost-button" id="catGroupCloseButton" type="button" aria-label="关闭猫群信息">×</button>
+              <strong id="catGroupTitle">猫群</strong>
+              <span id="catGroupCount">当前数量：1</span>
+              <span id="catGroupVisible">场景显示：1</span>
+              <span id="catGroupBonus">总包浆加成：×1.0</span>
+              <span id="catGroupStatus">状态：开心</span>
+            </aside>
           </div>
 
           <div class="station-zone">
@@ -128,6 +140,26 @@
     </main>
 
     <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+    <div class="guide-layer" id="guideLayer" hidden>
+      <div class="guide-backdrop" aria-hidden="true"></div>
+      <div class="guide-spotlight" id="guideSpotlight" aria-hidden="true"></div>
+      <section class="guide-card pixel-panel" role="dialog" aria-modal="true" aria-labelledby="guideTitle" aria-describedby="guideText">
+        <div class="guide-head">
+          <small id="guideStepLabel">1/6</small>
+          <button class="guide-close ghost-button" id="guideCloseButton" type="button" aria-label="关闭新手指南">×</button>
+        </div>
+        <h2 id="guideTitle">新手指南</h2>
+        <p id="guideText">跟着指引盘第一串。</p>
+        <div class="guide-hint" id="guideHint">点击下一步开始。</div>
+        <div class="guide-dots" id="guideDots" aria-hidden="true"></div>
+        <div class="guide-actions">
+          <button class="ghost-button" id="guideSkipButton" type="button">跳过</button>
+          <button class="soft-action" id="guidePrevButton" type="button">上一步</button>
+          <button class="primary-action" id="guideNextButton" type="button">下一步</button>
+        </div>
+      </section>
+    </div>
 
     <script src="game.js"></script>
   </body>
