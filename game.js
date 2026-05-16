@@ -6,7 +6,7 @@ const bgmTracks = [
 ];
 
 const BALANCE = {
-  version: 2,
+  version: 3,
   upgradePaceMinutes: [
     0.35, 0.65, 1, 1.5, 2.2, 3.2, 4.8, 7, 10, 14,
     19, 25, 32, 41, 52, 66, 82, 102, 126, 155,
@@ -19,6 +19,13 @@ const BALANCE = {
   braceletTapGrowth: 1.22,
   uniqueCatBonus: 0.05,
   pawBonus: 0.035,
+  beadOwnedBonus: 0.12,
+  beadArchiveBonus: 0.045,
+  activeGrowingBonus: 1.62,
+  activeGrowingFinishBonus: 0.52,
+  completedBraceletFocus: 0.72,
+  patinaSeconds: 3600,
+  polishPatinaBoost: 2.5,
 };
 
 const cats = [
@@ -61,11 +68,19 @@ const cats = [
 ];
 
 const beads = [
-  { id: "bodhi-root", name: "菩提根", sprite: "bodhi-root", threshold: 0, multiplier: 1, note: "温润白珠" },
-  { id: "monkey-head", name: "猴头", sprite: "monkey-head", threshold: 6500, multiplier: 1.65, note: "核纹红润" },
-  { id: "xingyue", name: "星月菩提", sprite: "xingyue", threshold: 75000, multiplier: 2.8, note: "星点月眼" },
-  { id: "vajra", name: "小金刚", sprite: "vajra", threshold: 650000, multiplier: 4.6, note: "深纹金刚" },
+  { id: "bodhi-root", name: "菩提根", sprite: "bodhi-root", threshold: 0, multiplier: 1, addBaseCost: 36, paceWeight: 0.54, note: "纯色/渐变/多宝随机" },
+  { id: "monkey-head", name: "猴头", sprite: "monkey-head", threshold: 6500, multiplier: 1.65, addBaseCost: 980, paceWeight: 0.82, note: "核纹红润" },
+  { id: "xingyue", name: "星月菩提", sprite: "xingyue", threshold: 75000, multiplier: 2.8, addBaseCost: 9800, paceWeight: 1.08, note: "星点月眼" },
+  { id: "vajra", name: "小金刚", sprite: "vajra", threshold: 650000, multiplier: 4.6, addBaseCost: 85000, paceWeight: 1.32, note: "深纹金刚" },
 ];
+
+const bodhiVariants = [
+  { id: "pure", name: "纯色" },
+  { id: "gradient", name: "渐变" },
+  { id: "duobao", name: "多宝" },
+];
+
+const defaultVariant = { id: "default", name: "标准" };
 
 const beadIdMigration = {
   wood: "bodhi-root",
@@ -154,7 +169,7 @@ const wishes = [
   { id: "zen10k", label: "累计一万禅意", goal: 10000, reward: 1, value: (s) => s.totalZen },
   { id: "cats8", label: "结缘八只猫", goal: 8, reward: 2, value: (s) => totalCats(s) },
   { id: "decor5", label: "装饰五级", goal: 5, reward: 2, value: (s) => totalDecorationLevels(s) },
-  { id: "level15", label: "珠串十五级", goal: 15, reward: 2, value: (s) => s.braceletLevel },
+  { id: "level15", label: "手法十五级", goal: 15, reward: 2, value: (s) => s.braceletLevel },
   { id: "zen500k", label: "累计五十万禅意", goal: 500000, reward: 4, value: (s) => s.totalZen },
 ];
 
@@ -164,12 +179,30 @@ const pawTalents = [
   { id: "diaryLuck", name: "日记福气", description: "全部收益 +8%/级", cost: 2, costScale: 1.8, maxLevel: 6, effect: "allMult", value: 0.08 },
 ];
 
+function makeBeadPiece(beadId, variant = "default", patina = 0) {
+  return {
+    id: `${beadId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    variant,
+    patina,
+    addedAt: Date.now(),
+  };
+}
+
+function starterBeadCollections() {
+  return {
+    ...Object.fromEntries(beads.map((bead) => [bead.id, []])),
+    "bodhi-root": [makeBeadPiece("bodhi-root", "pure", 0)],
+  };
+}
+
 const defaultState = () => ({
   zen: 0,
   totalZen: 0,
   braceletLevel: 1,
   selectedBead: "bodhi-root",
+  beadCollections: starterBeadCollections(),
   catCounts: { ...Object.fromEntries(cats.map((cat) => [cat.id, 0])), tabby: 1 },
+  catPlacements: {},
   decorationLevels: Object.fromEntries(decorations.map((decor) => [decor.id, 0])),
   pawTalentLevels: Object.fromEntries(pawTalents.map((talent) => [talent.id, 0])),
   claimedWishes: {},
@@ -209,26 +242,26 @@ const catActivityZones = [
 const guideSteps = [
   {
     title: "欢迎来到猫猫盘珠日记",
-    text: "目标很简单：盘手串攒禅意，结缘猫咪自动产出，再用装饰把房间一点点布置起来。",
-    hint: "新开局已经有一只橘串师在帮你慢慢产出。",
+    text: "这是一款放置类游戏：核心不是一直盘串，而是把手串、猫咪和装饰养起来，让它们自己慢慢产出禅意。",
+    hint: "新开局已经有一只橘串师在帮你产出；离开一会儿再回来升级，也是在玩。",
     target: ".stage",
   },
   {
-    title: "先盘一下手串",
-    text: "按住桌上的手串，围着中心拖动旋转。手串转过一小段，就会获得一次禅意。",
-    hint: "禅意是主要资源，顶部第一格会显示当前数量；旋转越顺，盘珠越快。",
+    title: "手动盘串是加速",
+    text: "按住桌上的手串，围着中心拖动旋转。手串转过一小段，会获得少量禅意并推进一点包浆。",
+    hint: "手动盘串适合开局和差一点升级时补资源，长期收益主要来自放置产出。",
     target: "#altarBracelet",
   },
   {
-    title: "攒够就升级珠串",
-    text: "升级珠串会提高盘珠收益，也会带动自动产出变强。前期会很快给你连续升级反馈，后面再逐步拉长等待时间。",
-    hint: "绿色按钮亮起来时，就可以升级当前珠串；手动盘串能明显加快开局。",
+    title: "攒够就升级手法",
+    text: "升级手法会提高盘珠收益，也会带动自动产出变强。前期会很快给你连续升级反馈，后面再逐步拉长等待时间。",
+    hint: "绿色按钮亮起来时，就可以升级手法；右侧感叹号代表也有养成项可以点。",
     target: "#upgradeBraceletButton",
   },
   {
     title: "右侧是主要养成",
-    text: "猫缘能结缘更多猫咪，珠阶可以换现实文玩手串，装饰能升级房间里的摆件。",
-    hint: "猫咪越多，房间越热闹，自动猫息也会越高。",
+    text: "猫缘能结缘更多猫咪，珠阶能添加现实文玩手串，装饰能升级房间里的摆件。",
+    hint: "珠阶里新串 0-100% 包浆期间加成最高；满包浆后会变慢，适合继续添新串。",
     target: ".tabbar",
     tab: "cats",
   },
@@ -240,9 +273,9 @@ const guideSteps = [
     tab: "decor",
   },
   {
-    title: "看灵光和心愿",
-    text: "灵光进度会推动新手串解锁；心愿完成后给福爪，福爪能在心愿页兑换永久加成。",
-    hint: "底部福爪显示可用/累计，伙伴显示已结缘猫咪数；没事时让猫咪自己产出，回来再升级。",
+    title: "看包浆和心愿",
+    text: "包浆条显示当前手串养到哪里；心愿完成后给福爪，福爪能在心愿页兑换永久加成。",
+    hint: "猫咪可以拖动摆放，也会自己走动换动作。出现感叹号时，说明那个养成项已经能升级。",
     target: ".progress-wrap",
     tab: "wishes",
   },
@@ -260,6 +293,18 @@ const polishingState = {
   moved: false,
 };
 const POLISH_STEP_DEGREES = 38;
+const catDragState = {
+  active: false,
+  pointerId: null,
+  element: null,
+  key: "",
+  startX: 0,
+  startY: 0,
+  offsetX: 0,
+  offsetBottom: 0,
+  moved: false,
+};
+let suppressNextCatClick = false;
 
 const $ = (selector) => document.querySelector(selector);
 const elements = {
@@ -271,6 +316,7 @@ const elements = {
   catCountValue: $("#catCountValue"),
   braceletName: $("#braceletName"),
   braceletLevel: $("#braceletLevel"),
+  braceletStatus: $("#braceletStatus"),
   braceletCost: $("#braceletCost"),
   altarBracelet: $("#altarBracelet"),
   auraLabel: $("#auraLabel"),
@@ -290,7 +336,6 @@ const elements = {
   catGroupBonus: $("#catGroupBonus"),
   catGroupStatus: $("#catGroupStatus"),
   tapTarget: $("#tapTarget"),
-  mainTapButton: $("#mainTapButton"),
   upgradeBraceletButton: $("#upgradeBraceletButton"),
   bgmButton: $("#bgmButton"),
   bgmLabel: $("#bgmLabel"),
@@ -320,7 +365,12 @@ function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
     const merged = { ...defaultState(), ...saved };
+    merged.beadCollections = {
+      ...starterBeadCollections(),
+      ...(saved?.beadCollections ?? {}),
+    };
     merged.catCounts = { ...defaultState().catCounts, ...(saved?.catCounts ?? {}) };
+    merged.catPlacements = { ...(saved?.catPlacements ?? {}) };
     merged.decorationLevels = { ...defaultState().decorationLevels, ...(saved?.decorationLevels ?? {}) };
     merged.pawTalentLevels = { ...defaultState().pawTalentLevels, ...(saved?.pawTalentLevels ?? {}) };
     merged.claimedWishes = { ...(saved?.claimedWishes ?? {}) };
@@ -330,6 +380,8 @@ function loadState() {
     }
     merged.selectedBead = beadIdMigration[merged.selectedBead] ?? merged.selectedBead;
     if (!beads.some((bead) => bead.id === merged.selectedBead)) merged.selectedBead = "bodhi-root";
+    ensureBeadCollections(merged);
+    if (!beadCollection(merged.selectedBead, merged).length) merged.selectedBead = firstOwnedBeadId(merged);
 
     const elapsedSeconds = Math.max(0, Math.min(8 * 3600, (Date.now() - (merged.lastSaved ?? Date.now())) / 1000));
     if (elapsedSeconds > 15) {
@@ -339,6 +391,7 @@ function loadState() {
         merged.totalZen += offlineGain;
         requestAnimationFrame(() => toast(`离线收获 ${formatNumber(offlineGain)} 禅意`));
       }
+      advanceActiveBraceletPatina(elapsedSeconds * 0.65, merged, false);
     }
 
     return merged;
@@ -423,9 +476,126 @@ function formatNumber(value) {
   return `${scaled.toFixed(digits).replace(/\.0+$/, "")}${units[index]}`;
 }
 
+function randomBodhiVariant() {
+  return bodhiVariants[Math.floor(Math.random() * bodhiVariants.length)]?.id ?? "pure";
+}
+
+function variantForNewBead(beadId) {
+  return beadId === "bodhi-root" ? randomBodhiVariant() : "default";
+}
+
+function variantName(beadId, variantId = "default") {
+  if (beadId === "bodhi-root") {
+    return bodhiVariants.find((variant) => variant.id === variantId)?.name ?? "纯色";
+  }
+  return defaultVariant.name;
+}
+
+function ensureBeadCollections(current = state) {
+  if (!current.beadCollections || typeof current.beadCollections !== "object") {
+    current.beadCollections = starterBeadCollections();
+  }
+
+  beads.forEach((bead) => {
+    const collection = Array.isArray(current.beadCollections[bead.id]) ? current.beadCollections[bead.id] : [];
+    current.beadCollections[bead.id] = collection
+      .filter(Boolean)
+      .map((piece, index) => {
+        const bodhiVariant = bodhiVariants.some((variant) => variant.id === piece.variant) ? piece.variant : "pure";
+        return {
+          id: piece.id ?? `${bead.id}-migrated-${index}`,
+          variant: bead.id === "bodhi-root" ? bodhiVariant : "default",
+          patina: Math.max(0, Math.min(1, Number(piece.patina ?? 0))),
+          addedAt: piece.addedAt ?? Date.now(),
+        };
+      });
+  });
+
+  if (!current.beadCollections["bodhi-root"].length) {
+    current.beadCollections["bodhi-root"].push(makeBeadPiece("bodhi-root", "pure", 0));
+  }
+}
+
+function beadCollection(beadId, current = state) {
+  ensureBeadCollections(current);
+  return current.beadCollections[beadId] ?? [];
+}
+
+function firstOwnedBeadId(current = state) {
+  ensureBeadCollections(current);
+  return beads.find((bead) => beadCollection(bead.id, current).length > 0)?.id ?? "bodhi-root";
+}
+
 function activeBead(current = state) {
-  const available = beads.filter((bead) => current.totalZen >= bead.threshold);
-  return available.find((bead) => bead.id === current.selectedBead) ?? available.at(-1) ?? beads[0];
+  ensureBeadCollections(current);
+  const unlockedOwned = beads.filter((bead) => current.totalZen >= bead.threshold && beadCollection(bead.id, current).length > 0);
+  return unlockedOwned.find((bead) => bead.id === current.selectedBead) ?? unlockedOwned[0] ?? beads[0];
+}
+
+function activeBracelet(current = state) {
+  const bead = activeBead(current);
+  const collection = beadCollection(bead.id, current);
+  const piece = [...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1) ?? makeBeadPiece(bead.id, bead.id === "bodhi-root" ? "pure" : "default", 0);
+  return { bead, piece, collection };
+}
+
+function beadPatinaStage(piece) {
+  return Math.max(0, Math.min(4, Math.floor((piece?.patina ?? 0) * 4.999)));
+}
+
+function braceletAssetPath(bead, piece) {
+  const variant = piece?.variant ?? (bead.id === "bodhi-root" ? "pure" : "default");
+  return `assets/art/bracelets/${bead.id}-${variant}-${beadPatinaStage(piece)}.png`;
+}
+
+function braceletImageStyle(bead, piece) {
+  return `--bracelet-image:url('${braceletAssetPath(bead, piece)}')`;
+}
+
+function beadOwnedCount(beadId, current = state) {
+  return beadCollection(beadId, current).length;
+}
+
+function beadCompletedCount(beadId, current = state) {
+  return beadCollection(beadId, current).filter((piece) => piece.patina >= 1).length;
+}
+
+function beadTypeMultiplier(beadId, current = state) {
+  return Math.pow(1 + BALANCE.beadOwnedBonus, Math.max(0, beadOwnedCount(beadId, current) - 1));
+}
+
+function beadArchiveMultiplier(current = state) {
+  return beads.reduce((multiplier, bead) => {
+    return multiplier * Math.pow(1 + BALANCE.beadArchiveBonus, beadCompletedCount(bead.id, current));
+  }, 1);
+}
+
+function activeBraceletFocusMultiplier(current = state) {
+  const { bead, piece } = activeBracelet(current);
+  const patina = piece?.patina ?? 0;
+  const focus = patina >= 1
+    ? BALANCE.completedBraceletFocus
+    : BALANCE.activeGrowingBonus + patina * BALANCE.activeGrowingFinishBonus;
+  return bead.multiplier * beadTypeMultiplier(bead.id, current) * focus;
+}
+
+function beadPieceCost(bead, current = state) {
+  const count = beadOwnedCount(bead.id, current);
+  return pacedCost(bead.paceWeight, bead.addBaseCost, current) * Math.pow(1.18, count);
+}
+
+function canAddBead(bead, current = state) {
+  return current.totalZen >= bead.threshold && current.zen >= beadPieceCost(bead, current);
+}
+
+function activePatinaPercent(current = state) {
+  return Math.floor((activeBracelet(current).piece?.patina ?? 0) * 100);
+}
+
+function braceletPatinaLabel(bead, piece, active = false) {
+  if (!piece) return bead.note;
+  if (active && piece.patina >= 1) return "已包浆，换一个盘玩更好哦";
+  return `${variantName(bead.id, piece.variant)} · 包浆 ${Math.floor(piece.patina * 100)}%`;
 }
 
 function uniqueCats(current = state) {
@@ -517,7 +687,8 @@ function decorationFlatPps(current = state) {
 }
 
 function globalMultiplier(current = state) {
-  return activeBead(current).multiplier *
+  return activeBraceletFocusMultiplier(current) *
+    beadArchiveMultiplier(current) *
     (1 + uniqueCats(current) * BALANCE.uniqueCatBonus) *
     (1 + totalPaws(current) * BALANCE.pawBonus) *
     pawTalentMultiplier("allMult", current);
@@ -614,6 +785,20 @@ function spendZen(amount) {
   return true;
 }
 
+function advanceActiveBraceletPatina(seconds, current = state, notify = true) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return false;
+  const { bead, piece } = activeBracelet(current);
+  if (!piece || piece.patina >= 1) return false;
+  const previous = piece.patina;
+  const handcraftBonus = 1 + Math.max(0, (current.braceletLevel ?? 1) - 1) * 0.018;
+  piece.patina = Math.min(1, previous + (seconds * handcraftBonus) / BALANCE.patinaSeconds);
+  const completed = previous < 1 && piece.patina >= 1;
+  if (completed && notify) {
+    toast("已包浆，换一个盘玩更好哦");
+  }
+  return completed;
+}
+
 function advanceUpgradePace() {
   state.upgradePaceStep = upgradePaceStep(state) + 1;
 }
@@ -640,6 +825,7 @@ function grantPolish(steps, event) {
   if (steps <= 0) return;
   const amount = tapPower() * steps;
   gainZen(amount);
+  advanceActiveBraceletPatina(steps * BALANCE.polishPatinaBoost);
   state.taps += steps;
   popText(event, `+${formatNumber(amount)}`);
   elements.tapTarget.classList.remove("pulse");
@@ -724,15 +910,29 @@ function upgradeBracelet() {
   if (!spendZen(cost)) return;
   state.braceletLevel += 1;
   advanceUpgradePace();
-  toast(`珠串升到 Lv.${state.braceletLevel}`);
+  toast(`盘串手法升到 Lv.${state.braceletLevel}`);
   render();
 }
 
 function selectBead(beadId) {
   const bead = beads.find((item) => item.id === beadId);
-  if (!bead || state.totalZen < bead.threshold) return;
+  if (!bead || state.totalZen < bead.threshold || !beadCollection(bead.id).length) return;
   state.selectedBead = bead.id;
-  toast(`换上${bead.name}`);
+  const { piece } = activeBracelet();
+  toast(`开始盘玩${bead.name}${variantName(bead.id, piece.variant)}`);
+  render();
+}
+
+function addBead(beadId) {
+  const bead = beads.find((item) => item.id === beadId);
+  if (!bead || state.totalZen < bead.threshold) return;
+  const cost = beadPieceCost(bead);
+  if (!spendZen(cost)) return;
+  const variant = variantForNewBead(bead.id);
+  beadCollection(bead.id).push(makeBeadPiece(bead.id, variant, 0));
+  state.selectedBead = bead.id;
+  advanceUpgradePace();
+  toast(`添了一串${bead.name}${variantName(bead.id, variant)}，开始养包浆`);
   render();
 }
 
@@ -799,7 +999,7 @@ function syncGuide() {
   elements.guideText.textContent = step.text;
   elements.guideHint.textContent = step.hint;
   elements.guidePrevButton.disabled = guideIndex === 0;
-  elements.guideNextButton.textContent = guideIndex === guideSteps.length - 1 ? "开始盘串" : "下一步";
+  elements.guideNextButton.textContent = guideIndex === guideSteps.length - 1 ? "开始放置" : "下一步";
   renderGuideDots();
 }
 
@@ -834,7 +1034,7 @@ function closeGuide(markSeen = true) {
 function nextGuideStep() {
   if (guideIndex >= guideSteps.length - 1) {
     closeGuide(true);
-    toast("新手指南完成，开始盘珠吧");
+    toast("新手指南完成，放心放置，回来再升级");
     return;
   }
   guideIndex += 1;
@@ -906,16 +1106,19 @@ function ensureCatVisual(cat, catIndex, instanceIndex) {
     const zone = assignCatZone(catIndex, instanceIndex);
     const activity = pickWeightedActivity(zone.allowed);
     const offset = ((catIndex + 1) * 11 + instanceIndex * 17) % 9 - 4;
+    const placement = state.catPlacements?.[key];
+    const placedX = Number.isFinite(placement?.x) ? placement.x : Math.max(2, Math.min(92, zone.x + offset));
+    const placedBottom = Number.isFinite(placement?.bottom) ? placement.bottom : zone.bottom + (instanceIndex % 2) * 1.2;
     catVisualState.set(key, {
       zoneId: zone.id,
       activity: activity.activity,
       spriteAction: activity.spriteAction,
       mood: activity.mood,
-      x: Math.max(2, Math.min(92, zone.x + offset)),
-      targetX: Math.max(zone.minX, Math.min(zone.maxX, zone.x + offset)),
-      minX: zone.minX,
-      maxX: zone.maxX,
-      bottom: zone.bottom + (instanceIndex % 2) * 1.2,
+      x: placedX,
+      targetX: placedX,
+      minX: placement ? Math.max(2, placedX - 10) : zone.minX,
+      maxX: placement ? Math.min(92, placedX + 10) : zone.maxX,
+      bottom: placedBottom,
       scale: zone.scale,
       face: instanceIndex % 2 === 0 ? 1 : -1,
       z: zone.z + instanceIndex,
@@ -973,6 +1176,7 @@ function pickCatMoveTarget(visual) {
 
 function updateCatPositions(delta) {
   catVisualState.forEach((visual, key) => {
+    if (catDragState.active && catDragState.key === key) return;
     if (visual.activity !== "walk" && visual.activity !== "run") return;
     const speed = visual.speed * (visual.activity === "run" ? 2.2 : 1);
     if (!Number.isFinite(visual.targetX)) visual.targetX = pickCatMoveTarget(visual);
@@ -991,6 +1195,80 @@ function updateCatPositions(delta) {
     el.style.setProperty("--cat-left", `${visual.x}%`);
     el.style.setProperty("--cat-face", visual.face);
   });
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function beginCatDrag(event) {
+  const stageCat = event.target.closest("[data-stage-cat]");
+  if (!stageCat || (event.button !== undefined && event.button !== 0)) return;
+  const layerRect = elements.catLayer.getBoundingClientRect();
+  const catRect = stageCat.getBoundingClientRect();
+  const instanceIndex = Number(stageCat.dataset.catInstance ?? 0);
+  const key = catInstanceKey(stageCat.dataset.cat, instanceIndex);
+
+  catDragState.active = true;
+  catDragState.pointerId = event.pointerId;
+  catDragState.element = stageCat;
+  catDragState.key = key;
+  catDragState.startX = event.clientX;
+  catDragState.startY = event.clientY;
+  catDragState.offsetX = event.clientX - catRect.left;
+  catDragState.offsetBottom = catRect.bottom - event.clientY;
+  catDragState.moved = false;
+
+  stageCat.classList.add("dragging-cat");
+  stageCat.setPointerCapture?.(event.pointerId);
+}
+
+function moveCatDrag(event) {
+  if (!catDragState.active || catDragState.pointerId !== event.pointerId || !catDragState.element) return;
+  const distance = Math.hypot(event.clientX - catDragState.startX, event.clientY - catDragState.startY);
+  if (distance > 4) catDragState.moved = true;
+  if (!catDragState.moved) return;
+
+  event.preventDefault();
+  const layerRect = elements.catLayer.getBoundingClientRect();
+  const leftPx = event.clientX - layerRect.left - catDragState.offsetX;
+  const bottomPx = layerRect.bottom - event.clientY - catDragState.offsetBottom;
+  const x = clamp((leftPx / layerRect.width) * 100, 0, 92);
+  const bottom = clamp((bottomPx / layerRect.height) * 100, 0, 48);
+  const visual = catVisualState.get(catDragState.key);
+  if (!visual) return;
+
+  visual.x = x;
+  visual.bottom = bottom;
+  visual.targetX = x;
+  visual.minX = clamp(x - 10, 0, 92);
+  visual.maxX = clamp(x + 10, 0, 92);
+  visual.face = visual.face || 1;
+
+  catDragState.element.style.setProperty("--cat-left", `${visual.x}%`);
+  catDragState.element.style.setProperty("--cat-bottom", `${visual.bottom}%`);
+}
+
+function finishCatDrag(event) {
+  if (!catDragState.active || catDragState.pointerId !== event.pointerId) return;
+  const stageCat = catDragState.element;
+  const visual = catVisualState.get(catDragState.key);
+  stageCat?.classList.remove("dragging-cat");
+  stageCat?.releasePointerCapture?.(event.pointerId);
+
+  if (catDragState.moved && visual) {
+    state.catPlacements[catDragState.key] = {
+      x: Number(visual.x.toFixed(2)),
+      bottom: Number(visual.bottom.toFixed(2)),
+    };
+    suppressNextCatClick = true;
+    saveState();
+  }
+
+  catDragState.active = false;
+  catDragState.pointerId = null;
+  catDragState.element = null;
+  catDragState.key = "";
 }
 
 function nextCatAction(catId, instanceIndex, mode = "random") {
@@ -1072,7 +1350,7 @@ function renderShop() {
       const cost = catCost(cat);
       const canBuy = unlocked && state.zen >= cost;
       return `
-        <article class="shop-card ${unlocked ? "" : "locked"}" data-cat-card="${cat.id}">
+        <article class="shop-card ${unlocked ? "" : "locked"} ${canBuy ? "has-upgrade" : ""}" data-cat-card="${cat.id}">
           <span class="sprite ${cat.sprite}" aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
@@ -1083,7 +1361,7 @@ function renderShop() {
               <span data-cat-pps="${cat.id}">${formatNumber(catGroupPps(cat))}/s 猫群猫息</span>
               <span data-cat-cost="${cat.id}">${unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(cat.unlock)} 解锁`}</span>
             </div>
-            <button class="shop-button" type="button" data-buy-cat="${cat.id}" ${canBuy ? "" : "disabled"}>
+            <button class="shop-button ${canBuy ? "has-upgrade" : ""}" type="button" data-buy-cat="${cat.id}" ${canBuy ? "" : "disabled"}>
               ${unlocked ? "结缘" : "未解锁"}
             </button>
           </div>
@@ -1098,21 +1376,36 @@ function renderBeads() {
     .map((bead) => {
       const unlocked = state.totalZen >= bead.threshold;
       const active = activeBead().id === bead.id;
+      const collection = beadCollection(bead.id);
+      const piece = active ? activeBracelet().piece : ([...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1));
+      const count = collection.length;
+      const completed = beadCompletedCount(bead.id);
+      const patina = Math.floor((piece?.patina ?? 0) * 100);
+      const cost = beadPieceCost(bead);
+      const canAdd = canAddBead(bead);
+      const imagePiece = piece ?? { variant: bead.id === "bodhi-root" ? "pure" : "default", patina: 0 };
       return `
-        <article class="bead-card ${unlocked ? "" : "locked"} ${active ? "active-bead" : ""}" data-bead-card="${bead.id}">
-          <span class="bracelet-sprite ${bead.sprite}" aria-hidden="true"></span>
+        <article class="bead-card ${unlocked ? "" : "locked"} ${active ? "active-bead" : ""} ${canAdd ? "has-upgrade" : ""}" data-bead-card="${bead.id}">
+          <span class="bracelet-sprite ${bead.sprite}" style="${braceletImageStyle(bead, imagePiece)}" aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
               <span>${bead.name}</span>
-              <span>x${bead.multiplier.toFixed(1)}</span>
+              <span data-bead-count="${bead.id}">持有 ${count}</span>
             </div>
             <div class="card-meta">
-              <span data-bead-state="${bead.id}">${unlocked ? "已点亮" : `累计 ${formatNumber(bead.threshold)}`}</span>
-              <span data-bead-label="${bead.id}">${active ? "当前手串" : bead.note}</span>
+              <span data-bead-state="${bead.id}">${unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`}</span>
+              <span data-bead-label="${bead.id}">${piece ? `${variantName(bead.id, piece.variant)} · 包浆 ${patina}%` : bead.note}</span>
+              <span data-bead-bonus="${bead.id}">${active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`}</span>
             </div>
-            <button class="shop-button secondary" type="button" data-select-bead="${bead.id}" ${unlocked && !active ? "" : "disabled"}>
-              ${active ? "佩戴中" : unlocked ? "换上" : "未解锁"}
-            </button>
+            <div class="bead-progress" aria-hidden="true"><span data-bead-progress="${bead.id}" style="width:${patina}%"></span></div>
+            <div class="bead-actions">
+              <button class="shop-button secondary" type="button" data-select-bead="${bead.id}" ${unlocked && count > 0 && !active ? "" : "disabled"}>
+                ${active ? "盘玩中" : count > 0 ? "盘这类" : "先添加"}
+              </button>
+              <button class="shop-button ${canAdd ? "has-upgrade" : "secondary"}" type="button" data-add-bead="${bead.id}" ${canAdd ? "" : "disabled"}>
+                ${unlocked ? `添加 ${formatNumber(cost)}` : "未解锁"}
+              </button>
+            </div>
           </div>
         </article>
       `;
@@ -1129,7 +1422,7 @@ function renderDecorations() {
       const cost = decorationCost(decor);
       const canBuy = unlocked && !capped && state.zen >= cost;
       return `
-        <article class="decor-card ${unlocked ? "" : "locked"}" data-decor-card="${decor.id}">
+        <article class="decor-card ${unlocked ? "" : "locked"} ${canBuy ? "has-upgrade" : ""}" data-decor-card="${decor.id}">
           <span class="decor-sprite ${decor.sprite}" aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
@@ -1141,7 +1434,7 @@ function renderDecorations() {
               <span data-decor-cost="${decor.id}">${unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(decor.unlock)} 解锁`}</span>
               <span data-decor-wait="${decor.id}">${unlocked && !capped ? waitLabel(cost) : capped ? "已满级" : "未解锁"}</span>
             </div>
-            <button class="shop-button secondary" type="button" data-upgrade-decor="${decor.id}" ${canBuy ? "" : "disabled"}>
+            <button class="shop-button secondary ${canBuy ? "has-upgrade" : ""}" type="button" data-upgrade-decor="${decor.id}" ${canBuy ? "" : "disabled"}>
               ${capped ? "已满级" : unlocked ? "升级装饰" : "未解锁"}
             </button>
           </div>
@@ -1159,7 +1452,7 @@ function renderWishes() {
       const cost = pawTalentCost(talent);
       const canBuy = !capped && state.paws >= cost;
       return `
-        <article class="paw-talent-card">
+        <article class="paw-talent-card ${canBuy ? "has-upgrade" : ""}" data-paw-talent-card="${talent.id}">
           <div class="card-title">
             <span>${talent.name}</span>
             <span data-paw-talent-level="${talent.id}">Lv.${level}/${talent.maxLevel}</span>
@@ -1168,7 +1461,7 @@ function renderWishes() {
             <span>${talent.description}</span>
             <span data-paw-talent-cost="${talent.id}">${capped ? "已满级" : `消耗 ${cost} 福爪`}</span>
           </div>
-          <button class="shop-button secondary" type="button" data-upgrade-paw-talent="${talent.id}" ${canBuy ? "" : "disabled"}>
+          <button class="shop-button secondary ${canBuy ? "has-upgrade" : ""}" type="button" data-upgrade-paw-talent="${talent.id}" ${canBuy ? "" : "disabled"}>
             ${capped ? "已满级" : "使用福爪"}
           </button>
         </article>
@@ -1183,7 +1476,7 @@ function renderWishes() {
       const claimed = Boolean(state.claimedWishes[wish.id]);
       const ready = progress >= 1 && !claimed;
       return `
-        <article class="wish-card ${claimed ? "claimed" : ""}" data-wish-card="${wish.id}">
+        <article class="wish-card ${claimed ? "claimed" : ""} ${ready ? "has-upgrade" : ""}" data-wish-card="${wish.id}">
           <div class="card-title">
             <span>${wish.label}</span>
             <span>福爪 +${wish.reward}</span>
@@ -1192,7 +1485,7 @@ function renderWishes() {
             <span data-wish-value="${wish.id}">${formatNumber(value)} / ${formatNumber(wish.goal)}</span>
           </div>
           <div class="wish-progress" aria-hidden="true"><span data-wish-progress="${wish.id}" style="width:${progress * 100}%"></span></div>
-          <button class="shop-button ${ready ? "" : "secondary"}" type="button" data-claim-wish="${wish.id}" ${ready ? "" : "disabled"}>
+          <button class="shop-button ${ready ? "has-upgrade" : "secondary"}" type="button" data-claim-wish="${wish.id}" ${ready ? "" : "disabled"}>
             ${claimed ? "已达成" : ready ? "领取" : "进行中"}
           </button>
         </article>
@@ -1215,6 +1508,38 @@ function renderWishes() {
   `;
 }
 
+function hasCatUpgrade(current = state) {
+  return cats.some((cat) => current.totalZen >= cat.unlock && current.zen >= catCost(cat));
+}
+
+function hasBeadUpgrade(current = state) {
+  return beads.some((bead) => current.totalZen >= bead.threshold && current.zen >= beadPieceCost(bead, current));
+}
+
+function hasDecorUpgrade(current = state) {
+  return decorations.some((decor) => {
+    const level = decorationLevel(decor, current);
+    return current.totalZen >= decor.unlock && level < decor.maxLevel && current.zen >= decorationCost(decor);
+  });
+}
+
+function hasWishUpgrade(current = state) {
+  return wishes.some((wish) => !current.claimedWishes[wish.id] && wish.value(current) >= wish.goal) ||
+    pawTalents.some((talent) => pawTalentLevel(talent, current) < talent.maxLevel && current.paws >= pawTalentCost(talent, current));
+}
+
+function updateUpgradeBadges() {
+  const tabState = {
+    cats: hasCatUpgrade(),
+    beads: hasBeadUpgrade(),
+    decor: hasDecorUpgrade(),
+    wishes: hasWishUpgrade(),
+  };
+  document.querySelectorAll("[data-tab]").forEach((button) => {
+    button.classList.toggle("has-upgrade", Boolean(tabState[button.dataset.tab]));
+  });
+}
+
 function updatePanelState() {
   cats.forEach((cat) => {
     const count = state.catCounts[cat.id] ?? 0;
@@ -1228,11 +1553,13 @@ function updatePanelState() {
     const button = elements.catShop.querySelector(`[data-buy-cat="${cat.id}"]`);
 
     card?.classList.toggle("locked", !unlocked);
+    card?.classList.toggle("has-upgrade", canBuy);
     if (countLabel) countLabel.textContent = `Lv.${count}`;
     if (ppsLabel) ppsLabel.textContent = `${formatNumber(catGroupPps(cat))}/s 猫群猫息`;
     if (costLabel) costLabel.textContent = unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(cat.unlock)} 解锁`;
     if (button) {
       button.disabled = !canBuy;
+      button.classList.toggle("has-upgrade", canBuy);
       button.textContent = unlocked ? "结缘" : "未解锁";
     }
   });
@@ -1241,18 +1568,41 @@ function updatePanelState() {
   beads.forEach((bead) => {
     const unlocked = state.totalZen >= bead.threshold;
     const active = currentBeadId === bead.id;
+    const collection = beadCollection(bead.id);
+    const count = collection.length;
+    const piece = active ? activeBracelet().piece : ([...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1));
+    const completed = beadCompletedCount(bead.id);
+    const patina = Math.floor((piece?.patina ?? 0) * 100);
+    const cost = beadPieceCost(bead);
+    const canAdd = canAddBead(bead);
     const card = elements.beadBoard.querySelector(`[data-bead-card="${bead.id}"]`);
+    const countLabel = elements.beadBoard.querySelector(`[data-bead-count="${bead.id}"]`);
     const stateLabel = elements.beadBoard.querySelector(`[data-bead-state="${bead.id}"]`);
     const beadLabel = elements.beadBoard.querySelector(`[data-bead-label="${bead.id}"]`);
-    const button = elements.beadBoard.querySelector(`[data-select-bead="${bead.id}"]`);
+    const bonusLabel = elements.beadBoard.querySelector(`[data-bead-bonus="${bead.id}"]`);
+    const progressBar = elements.beadBoard.querySelector(`[data-bead-progress="${bead.id}"]`);
+    const selectButton = elements.beadBoard.querySelector(`[data-select-bead="${bead.id}"]`);
+    const addButton = elements.beadBoard.querySelector(`[data-add-bead="${bead.id}"]`);
+    const image = card?.querySelector(".bracelet-sprite");
 
     card?.classList.toggle("locked", !unlocked);
     card?.classList.toggle("active-bead", active);
-    if (stateLabel) stateLabel.textContent = unlocked ? "已点亮" : `累计 ${formatNumber(bead.threshold)}`;
-    if (beadLabel) beadLabel.textContent = active ? "当前手串" : bead.note;
-    if (button) {
-      button.disabled = !unlocked || active;
-      button.textContent = active ? "佩戴中" : unlocked ? "换上" : "未解锁";
+    card?.classList.toggle("has-upgrade", canAdd);
+    if (image && piece) image.style.setProperty("--bracelet-image", `url("${braceletAssetPath(bead, piece)}")`);
+    if (countLabel) countLabel.textContent = `持有 ${count}`;
+    if (stateLabel) stateLabel.textContent = unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`;
+    if (beadLabel) beadLabel.textContent = piece ? `${variantName(bead.id, piece.variant)} · 包浆 ${patina}%` : bead.note;
+    if (bonusLabel) bonusLabel.textContent = active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`;
+    if (progressBar) progressBar.style.width = `${patina}%`;
+    if (selectButton) {
+      selectButton.disabled = !unlocked || count <= 0 || active;
+      selectButton.textContent = active ? "盘玩中" : count > 0 ? "盘这类" : "先添加";
+    }
+    if (addButton) {
+      addButton.disabled = !canAdd;
+      addButton.classList.toggle("secondary", !canAdd);
+      addButton.classList.toggle("has-upgrade", canAdd);
+      addButton.textContent = unlocked ? `添加 ${formatNumber(cost)}` : "未解锁";
     }
   });
 
@@ -1269,11 +1619,13 @@ function updatePanelState() {
     const button = elements.decorShop.querySelector(`[data-upgrade-decor="${decor.id}"]`);
 
     card?.classList.toggle("locked", !unlocked);
+    card?.classList.toggle("has-upgrade", canBuy);
     if (levelLabel) levelLabel.textContent = `Lv.${level}/${decor.maxLevel}`;
     if (costLabel) costLabel.textContent = unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(decor.unlock)} 解锁`;
     if (wait) wait.textContent = unlocked && !capped ? waitLabel(cost) : capped ? "已满级" : "未解锁";
     if (button) {
       button.disabled = !canBuy;
+      button.classList.toggle("has-upgrade", canBuy);
       button.textContent = capped ? "已满级" : unlocked ? "升级装饰" : "未解锁";
     }
   });
@@ -1289,11 +1641,13 @@ function updatePanelState() {
     const button = elements.wishList.querySelector(`[data-claim-wish="${wish.id}"]`);
 
     card?.classList.toggle("claimed", claimed);
+    card?.classList.toggle("has-upgrade", ready);
     if (valueLabel) valueLabel.textContent = `${formatNumber(value)} / ${formatNumber(wish.goal)}`;
     if (progressBar) progressBar.style.width = `${progress * 100}%`;
     if (button) {
       button.disabled = !ready;
       button.classList.toggle("secondary", !ready);
+      button.classList.toggle("has-upgrade", ready);
       button.textContent = claimed ? "已达成" : ready ? "领取" : "进行中";
     }
   });
@@ -1303,29 +1657,32 @@ function updatePanelState() {
     const capped = level >= talent.maxLevel;
     const cost = pawTalentCost(talent);
     const canBuy = !capped && state.paws >= cost;
+    const card = elements.wishList.querySelector(`[data-paw-talent-card="${talent.id}"]`);
     const levelLabel = elements.wishList.querySelector(`[data-paw-talent-level="${talent.id}"]`);
     const costLabel = elements.wishList.querySelector(`[data-paw-talent-cost="${talent.id}"]`);
     const button = elements.wishList.querySelector(`[data-upgrade-paw-talent="${talent.id}"]`);
 
+    card?.classList.toggle("has-upgrade", canBuy);
     if (levelLabel) levelLabel.textContent = `Lv.${level}/${talent.maxLevel}`;
     if (costLabel) costLabel.textContent = capped ? "已满级" : `消耗 ${cost} 福爪`;
     if (button) {
       button.disabled = !canBuy;
+      button.classList.toggle("has-upgrade", canBuy);
       button.textContent = capped ? "已满级" : "使用福爪";
     }
   });
 
   const pawSummary = elements.wishList.querySelector("[data-paw-summary]");
   if (pawSummary) pawSummary.textContent = `${formatNumber(state.paws)} 可用 / ${formatNumber(totalPaws(state))} 累计`;
+  updateUpgradeBadges();
 }
 
 function renderHud() {
   const pps = productionPerSecond();
   const tap = tapPower();
   const nextBraceletCost = braceletCost();
-  const currentBead = activeBead();
-  const nextBead = beads.find((bead) => bead.threshold > state.totalZen);
-  const aura = nextBead ? Math.min(1, state.totalZen / nextBead.threshold) : 1;
+  const { bead: currentBead, piece: currentPiece } = activeBracelet();
+  const patina = currentPiece?.patina ?? 0;
 
   elements.zenValue.textContent = formatNumber(state.zen);
   elements.ppsValue.textContent = `${formatNumber(pps)}/s`;
@@ -1334,12 +1691,14 @@ function renderHud() {
   elements.pawValue.textContent = `${formatNumber(state.paws)} / ${formatNumber(totalPaws(state))}`;
   elements.catCountValue.textContent = `${totalCats(state)} / ${cats.length}`;
   elements.braceletName.textContent = currentBead.name;
-  elements.braceletLevel.textContent = `Lv. ${state.braceletLevel}`;
-  elements.braceletCost.textContent = `升级 ${formatNumber(nextBraceletCost)}`;
+  elements.braceletLevel.textContent = `${variantName(currentBead.id, currentPiece?.variant)} · ${Math.floor(patina * 100)}%`;
+  elements.braceletCost.textContent = `手法 ${formatNumber(nextBraceletCost)}`;
   elements.altarBracelet.className = `bracelet-sprite ${currentBead.sprite} altar-bracelet`;
+  elements.altarBracelet.style.setProperty("--bracelet-image", `url("${braceletAssetPath(currentBead, currentPiece)}")`);
   elements.upgradeBraceletButton.disabled = state.zen < nextBraceletCost;
-  elements.auraLabel.textContent = nextBead ? `${Math.floor(aura * 100)}%` : "满";
-  elements.auraFill.style.width = `${aura * 100}%`;
+  elements.upgradeBraceletButton.classList.toggle("has-upgrade", state.zen >= nextBraceletCost);
+  elements.auraLabel.textContent = patina >= 1 ? "满包浆" : `${Math.floor(patina * 100)}%`;
+  elements.auraFill.style.width = `${patina * 100}%`;
 }
 
 function render() {
@@ -1362,6 +1721,7 @@ function tick(now) {
   if (pps > 0) {
     gainZen(pps * delta);
   }
+  advanceActiveBraceletPatina(delta);
 
   saveTimer += delta;
   if (saveTimer >= 5) {
@@ -1410,7 +1770,6 @@ function bindEvents() {
     event.preventDefault();
     showPolishHint();
   });
-  elements.mainTapButton.addEventListener("click", showPolishHint);
   elements.upgradeBraceletButton.addEventListener("click", upgradeBracelet);
   elements.guideButton.addEventListener("click", () => openGuide(0));
   elements.guideSkipButton.addEventListener("click", () => closeGuide(true));
@@ -1418,10 +1777,19 @@ function bindEvents() {
   elements.guidePrevButton.addEventListener("click", prevGuideStep);
   elements.guideNextButton.addEventListener("click", nextGuideStep);
   elements.catGroupCloseButton.addEventListener("click", closeCatGroupPanel);
+  elements.catLayer.addEventListener("pointerdown", beginCatDrag);
+  elements.catLayer.addEventListener("pointermove", moveCatDrag);
+  elements.catLayer.addEventListener("pointerup", finishCatDrag);
+  elements.catLayer.addEventListener("pointercancel", finishCatDrag);
 
   document.addEventListener("click", (event) => {
     const stageCat = event.target.closest("[data-stage-cat]");
     if (stageCat) {
+      if (suppressNextCatClick) {
+        suppressNextCatClick = false;
+        event.preventDefault();
+        return;
+      }
       const instanceIndex = Number(stageCat.dataset.catInstance ?? 0);
       changeCatAction(stageCat.dataset.cat, "cycle", instanceIndex);
       openCatGroupPanel(stageCat.dataset.cat);
@@ -1435,6 +1803,9 @@ function bindEvents() {
 
     const beadButton = event.target.closest("[data-select-bead]");
     if (beadButton) selectBead(beadButton.dataset.selectBead);
+
+    const addBeadButton = event.target.closest("[data-add-bead]");
+    if (addBeadButton) addBead(addBeadButton.dataset.addBead);
 
     const decorButton = event.target.closest("[data-upgrade-decor]");
     if (decorButton) upgradeDecoration(decorButton.dataset.upgradeDecor);

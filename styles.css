@@ -12,7 +12,6 @@
   --cream: #fff9df;
   --shadow: rgba(37, 22, 15, 0.25);
   --sprite-sheet: url("assets/art/cat-bead-sprites.png");
-  --cat-action-sheet: url("assets/art/cat-action-sprites.png");
   --ui-sheet: url("assets/art/ui-kit.png");
   --bracelet-bodhi-root: url("assets/art/bracelet-bodhi-root.png");
   --bracelet-monkey-head: url("assets/art/bracelet-monkey-head.png");
@@ -254,38 +253,41 @@ button {
 .sprite.token { background-position: 100% 100%; }
 
 .cat-action-sprite {
-  --cat-x: 0%;
-  --cat-y: 0%;
   display: inline-block;
-  background-image: var(--cat-action-sheet);
-  background-size: 400% 300%;
-  background-position: var(--cat-x) var(--cat-y);
   background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 0 rgba(82, 41, 18, 0.18));
 }
 
-.cat-action-sprite.tabby { --cat-x: 0%; }
-.cat-action-sprite.sleepy { --cat-x: 33.333%; }
-.cat-action-sprite.monk { --cat-x: 66.666%; }
-.cat-action-sprite.vendor { --cat-x: 100%; }
-.cat-action-sprite.action-sit { --cat-y: 0%; }
-.cat-action-sprite.action-jump { --cat-y: 50%; }
-.cat-action-sprite.action-lie { --cat-y: 100%; }
+.cat-action-sprite.tabby.action-sit { background-image: url("assets/art/cats/tabby-sit.png?v=1"); }
+.cat-action-sprite.tabby.action-jump { background-image: url("assets/art/cats/tabby-jump.png?v=1"); }
+.cat-action-sprite.tabby.action-lie { background-image: url("assets/art/cats/tabby-lie.png?v=1"); }
+.cat-action-sprite.sleepy.action-sit { background-image: url("assets/art/cats/sleepy-sit.png?v=1"); }
+.cat-action-sprite.sleepy.action-jump { background-image: url("assets/art/cats/sleepy-jump.png?v=1"); }
+.cat-action-sprite.sleepy.action-lie { background-image: url("assets/art/cats/sleepy-lie.png?v=1"); }
+.cat-action-sprite.monk.action-sit { background-image: url("assets/art/cats/monk-sit.png?v=1"); }
+.cat-action-sprite.monk.action-jump { background-image: url("assets/art/cats/monk-jump.png?v=1"); }
+.cat-action-sprite.monk.action-lie { background-image: url("assets/art/cats/monk-lie.png?v=1"); }
+.cat-action-sprite.vendor.action-sit { background-image: url("assets/art/cats/vendor-sit.png?v=1"); }
+.cat-action-sprite.vendor.action-jump { background-image: url("assets/art/cats/vendor-jump.png?v=1"); }
+.cat-action-sprite.vendor.action-lie { background-image: url("assets/art/cats/vendor-lie.png?v=1"); }
 
 .bracelet-sprite {
   display: inline-block;
   background-position: center;
   background-repeat: no-repeat;
   background-size: contain;
+  background-image: var(--bracelet-image, var(--bracelet-bodhi-root));
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 0 rgba(82, 41, 18, 0.18));
 }
 
-.bracelet-sprite.bodhi-root { background-image: var(--bracelet-bodhi-root); }
-.bracelet-sprite.monkey-head { background-image: var(--bracelet-monkey-head); }
-.bracelet-sprite.xingyue { background-image: var(--bracelet-xingyue); }
-.bracelet-sprite.vajra { background-image: var(--bracelet-vajra); }
+.bracelet-sprite.bodhi-root { --bracelet-image: var(--bracelet-bodhi-root); }
+.bracelet-sprite.monkey-head { --bracelet-image: var(--bracelet-monkey-head); }
+.bracelet-sprite.xingyue { --bracelet-image: var(--bracelet-xingyue); }
+.bracelet-sprite.vajra { --bracelet-image: var(--bracelet-vajra); }
 
 .decor-sprite {
   display: inline-block;
@@ -449,19 +451,26 @@ button {
   opacity: 0;
   scale: var(--cat-scale, 1);
   transform-origin: bottom center;
-  transition: opacity 240ms ease, transform 240ms ease, left 420ms linear;
+  transition: opacity 240ms ease, transform 240ms ease, left 420ms linear, bottom 180ms ease;
   rotate: 0deg;
   transform: translateY(14px) scaleX(var(--cat-face, 1));
   pointer-events: none;
-  touch-action: manipulation;
+  touch-action: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 .stage-cat.show {
   opacity: 1;
   transform: translateY(0) scaleX(var(--cat-face, 1));
-  cursor: pointer;
+  cursor: grab;
   pointer-events: auto;
+}
+
+.stage-cat.dragging-cat {
+  z-index: 30;
+  cursor: grabbing;
+  transition: opacity 120ms ease, transform 120ms ease;
+  filter: drop-shadow(0 9px 0 rgba(82, 41, 18, 0.2)) brightness(1.08);
 }
 
 .stage-cat.show:hover {
@@ -644,9 +653,9 @@ button {
 
 .ritual-bar {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
-  width: min(520px, 100%);
+  width: min(360px, 100%);
   z-index: 3;
 }
 
@@ -721,6 +730,46 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.55;
   filter: grayscale(0.45);
+}
+
+.has-upgrade::after {
+  content: "!";
+  position: absolute;
+  right: -7px;
+  top: -8px;
+  z-index: 8;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #542a14;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff3cf, #f3bd43 58%, #d85e4b);
+  color: #542a14;
+  font-size: 0.86rem;
+  font-weight: 900;
+  line-height: 1;
+  box-shadow: 0 3px 0 rgba(82, 41, 18, 0.2);
+  pointer-events: none;
+}
+
+.tab-button.has-upgrade,
+.shop-button.has-upgrade,
+.primary-action.has-upgrade,
+.soft-action.has-upgrade {
+  position: relative;
+}
+
+button:disabled.has-upgrade::after {
+  display: none;
+}
+
+.shop-card.has-upgrade .shop-button.has-upgrade::after,
+.bead-card.has-upgrade .shop-button.has-upgrade::after,
+.decor-card.has-upgrade .shop-button.has-upgrade::after,
+.wish-card.has-upgrade .shop-button.has-upgrade::after,
+.paw-talent-card.has-upgrade .shop-button.has-upgrade::after {
+  display: none;
 }
 
 .ui-icon {
@@ -819,6 +868,7 @@ button:disabled {
 .wish-card,
 .bead-card,
 .decor-card {
+  position: relative;
   display: grid;
   grid-template-columns: 70px minmax(0, 1fr);
   gap: 10px;
@@ -884,12 +934,43 @@ button:disabled {
   outline: 4px solid rgba(68, 184, 121, 0.48);
 }
 
+.bead-progress {
+  height: 12px;
+  margin: 3px 0 7px;
+  border: 2px solid #542a14;
+  border-radius: 4px;
+  background: #5a331d;
+  overflow: hidden;
+}
+
+.bead-progress span {
+  display: block;
+  width: 0%;
+  height: 100%;
+  background:
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 5px, transparent 5px 10px),
+    linear-gradient(90deg, #f6e6b0, #d3944d, #7c3f24);
+  transition: width 180ms ease;
+}
+
+.bead-actions {
+  display: grid;
+  grid-template-columns: 0.82fr 1.18fr;
+  gap: 7px;
+}
+
+.bead-actions .shop-button {
+  min-height: 34px;
+  padding-block: 6px;
+}
+
 .wish-card {
   grid-template-columns: minmax(0, 1fr);
 }
 
 .paw-panel,
 .paw-talent-card {
+  position: relative;
   padding: 9px;
   border: 3px solid #643316;
   border-radius: 6px;
@@ -1347,10 +1428,6 @@ button:disabled {
     gap: 5px;
   }
 
-  .ritual-bar {
-    grid-template-columns: 1fr 1fr;
-  }
-
   .bottom-dock {
     grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
     padding: 6px;
@@ -1458,11 +1535,55 @@ button:disabled {
     grid-template-columns: 54px minmax(0, 1fr);
   }
 
+  .bead-actions {
+    grid-template-columns: 1fr;
+  }
+
   .shop-card .sprite,
   .bead-card .sprite,
   .bead-card .bracelet-sprite,
   .decor-card .decor-sprite {
     width: 52px;
     height: 54px;
+  }
+}
+
+@media (max-width: 760px) and (orientation: portrait) {
+  html,
+  body {
+    overflow: auto;
+  }
+
+  .game-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+    grid-template-rows: auto auto auto;
+  }
+
+  .play-layout {
+    grid-template-rows: auto auto;
+  }
+
+  .stage {
+    min-height: 58dvh;
+  }
+
+  .room-scene {
+    min-height: 30dvh;
+  }
+
+  .side-panel {
+    min-height: 42dvh;
+  }
+
+  .panel-view {
+    max-height: 38dvh;
+  }
+
+  .bottom-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 25;
   }
 }
