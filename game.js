@@ -1,5 +1,10 @@
 const SAVE_KEY = "cat-bead-idle-save-v1";
 
+const bgmTracks = [
+  "assets/audio/bodhi-cat-shop.mp3",
+  "assets/audio/bodhi-cat-shop-alt.mp3",
+];
+
 const BALANCE = {
   version: 2,
   upgradePaceMinutes: [
@@ -104,7 +109,7 @@ const decorations = [
     maxLevel: 10,
     effect: "tapMult",
     value: 0.2,
-    note: "盘串 +20%/级",
+    note: "盘珠 +20%/级",
   },
   {
     id: "window-perch",
@@ -128,7 +133,7 @@ const decorations = [
     maxLevel: 8,
     effect: "tapMult",
     value: 0.28,
-    note: "盘串 +28%/级",
+    note: "盘珠 +28%/级",
   },
   {
     id: "display-shelf",
@@ -155,7 +160,7 @@ const wishes = [
 
 const pawTalents = [
   { id: "catBlessing", name: "招财肉垫", description: "猫息永久 +12%/级", cost: 1, costScale: 1.55, maxLevel: 10, effect: "catMult", value: 0.12 },
-  { id: "quickPaws", name: "灵爪盘珠", description: "盘串收益 +15%/级", cost: 1, costScale: 1.65, maxLevel: 8, effect: "tapMult", value: 0.15 },
+  { id: "quickPaws", name: "灵爪盘珠", description: "盘珠收益 +15%/级", cost: 1, costScale: 1.65, maxLevel: 8, effect: "tapMult", value: 0.15 },
   { id: "diaryLuck", name: "日记福气", description: "全部收益 +8%/级", cost: 2, costScale: 1.8, maxLevel: 6, effect: "allMult", value: 0.08 },
 ];
 
@@ -170,6 +175,7 @@ const defaultState = () => ({
   claimedWishes: {},
   paws: 0,
   taps: 0,
+  bgmEnabled: true,
   tutorialSeen: false,
   balanceVersion: BALANCE.version,
   upgradePaceStep: 0,
@@ -209,13 +215,13 @@ const guideSteps = [
   },
   {
     title: "先盘一下手串",
-    text: "点击桌上的手串，或点桌子下方的盘串按钮，都能立刻获得禅意。",
-    hint: "禅意是主要资源，顶部第一格会显示当前数量。",
-    target: "#tapTarget",
+    text: "按住桌上的手串，围着中心拖动旋转。手串转过一小段，就会获得一次禅意。",
+    hint: "禅意是主要资源，顶部第一格会显示当前数量；旋转越顺，盘珠越快。",
+    target: "#altarBracelet",
   },
   {
     title: "攒够就升级珠串",
-    text: "升级珠串会提高盘串收益，也会带动自动产出变强。前期会很快给你连续升级反馈，后面再逐步拉长等待时间。",
+    text: "升级珠串会提高盘珠收益，也会带动自动产出变强。前期会很快给你连续升级反馈，后面再逐步拉长等待时间。",
     hint: "绿色按钮亮起来时，就可以升级当前珠串；手动盘串能明显加快开局。",
     target: "#upgradeBraceletButton",
   },
@@ -245,6 +251,15 @@ let catActionTimer = 0;
 let catActionDelay = randomCatActionDelay();
 let guideIndex = 0;
 let guideOpen = false;
+let braceletRotation = 0;
+const polishingState = {
+  active: false,
+  pointerId: null,
+  lastAngle: 0,
+  progressDegrees: 0,
+  moved: false,
+};
+const POLISH_STEP_DEGREES = 38;
 
 const $ = (selector) => document.querySelector(selector);
 const elements = {
@@ -277,6 +292,8 @@ const elements = {
   tapTarget: $("#tapTarget"),
   mainTapButton: $("#mainTapButton"),
   upgradeBraceletButton: $("#upgradeBraceletButton"),
+  bgmButton: $("#bgmButton"),
+  bgmLabel: $("#bgmLabel"),
   guideButton: $("#guideButton"),
   guideLayer: $("#guideLayer"),
   guideSpotlight: $("#guideSpotlight"),
@@ -292,6 +309,12 @@ const elements = {
   toastStack: $("#toastStack"),
   resetButton: $("#resetButton"),
 };
+
+const bgmAudio = new Audio(bgmTracks[0]);
+bgmAudio.preload = "auto";
+bgmAudio.volume = 0.38;
+let bgmIndex = 0;
+let bgmStarted = false;
 
 function loadState() {
   try {
@@ -328,6 +351,59 @@ function saveState() {
   state.lastSaved = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   elements.saveStatus.textContent = `已存档 ${new Date().toLocaleTimeString("zh-Hans", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function syncBgmButton() {
+  elements.bgmButton.classList.toggle("off", !state.bgmEnabled);
+  elements.bgmButton.setAttribute("aria-pressed", String(state.bgmEnabled));
+  elements.bgmLabel.textContent = state.bgmEnabled ? (bgmStarted ? "音乐开" : "音乐待启") : "音乐关";
+}
+
+function loadBgmTrack(index) {
+  bgmIndex = index % bgmTracks.length;
+  bgmAudio.src = bgmTracks[bgmIndex];
+  bgmAudio.load();
+}
+
+function playBgm() {
+  if (!state.bgmEnabled) return;
+  if (!bgmAudio.src) loadBgmTrack(bgmIndex);
+  bgmAudio.play()
+    .then(() => {
+      bgmStarted = true;
+      syncBgmButton();
+    })
+    .catch(() => {
+      bgmStarted = false;
+      syncBgmButton();
+    });
+}
+
+function playNextBgm() {
+  loadBgmTrack((bgmIndex + 1) % bgmTracks.length);
+  playBgm();
+}
+
+function toggleBgm() {
+  if (state.bgmEnabled && !bgmStarted) {
+    playBgm();
+    return;
+  }
+
+  state.bgmEnabled = !state.bgmEnabled;
+  if (state.bgmEnabled) {
+    playBgm();
+  } else {
+    bgmAudio.pause();
+    bgmStarted = false;
+  }
+  saveState();
+  syncBgmButton();
+}
+
+function startBgmAfterGesture(event) {
+  if (event?.target?.closest?.("#bgmButton")) return;
+  playBgm();
 }
 
 function formatNumber(value) {
@@ -542,15 +618,79 @@ function advanceUpgradePace() {
   state.upgradePaceStep = upgradePaceStep(state) + 1;
 }
 
-function handleTap(event) {
-  const amount = tapPower();
+function pointerAngle(event) {
+  const rect = elements.altarBracelet.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+  return Math.atan2(event.clientY - centerY, event.clientX - centerX) * 180 / Math.PI;
+}
+
+function normalizeAngleDelta(delta) {
+  if (delta > 180) return delta - 360;
+  if (delta < -180) return delta + 360;
+  return delta;
+}
+
+function setBraceletRotation(angle) {
+  braceletRotation = angle;
+  elements.altarBracelet.style.setProperty("--bracelet-rotation", `${braceletRotation}deg`);
+}
+
+function grantPolish(steps, event) {
+  if (steps <= 0) return;
+  const amount = tapPower() * steps;
   gainZen(amount);
-  state.taps += 1;
+  state.taps += steps;
   popText(event, `+${formatNumber(amount)}`);
   elements.tapTarget.classList.remove("pulse");
   void elements.tapTarget.offsetWidth;
   elements.tapTarget.classList.add("pulse");
   renderHud();
+}
+
+function startPolishing(event) {
+  if (event.button !== undefined && event.button !== 0) return;
+  event.preventDefault();
+  polishingState.active = true;
+  polishingState.pointerId = event.pointerId;
+  polishingState.lastAngle = pointerAngle(event);
+  polishingState.progressDegrees = 0;
+  polishingState.moved = false;
+  elements.tapTarget.classList.add("polishing");
+  elements.tapTarget.setPointerCapture?.(event.pointerId);
+}
+
+function rotatePolishing(event) {
+  if (!polishingState.active || polishingState.pointerId !== event.pointerId) return;
+  event.preventDefault();
+  const angle = pointerAngle(event);
+  const delta = normalizeAngleDelta(angle - polishingState.lastAngle);
+  polishingState.lastAngle = angle;
+  if (Math.abs(delta) < 0.25) return;
+
+  polishingState.moved = true;
+  setBraceletRotation(braceletRotation + delta);
+  polishingState.progressDegrees += Math.abs(delta);
+  const steps = Math.floor(polishingState.progressDegrees / POLISH_STEP_DEGREES);
+  if (steps > 0) {
+    polishingState.progressDegrees -= steps * POLISH_STEP_DEGREES;
+    grantPolish(steps, event);
+  }
+}
+
+function stopPolishing(event) {
+  if (!polishingState.active || polishingState.pointerId !== event.pointerId) return;
+  polishingState.active = false;
+  polishingState.pointerId = null;
+  elements.tapTarget.classList.remove("polishing");
+  elements.tapTarget.releasePointerCapture?.(event.pointerId);
+}
+
+function showPolishHint() {
+  elements.tapTarget.classList.remove("pulse");
+  void elements.tapTarget.offsetWidth;
+  elements.tapTarget.classList.add("pulse");
+  toast("按住桌上的手串，绕着中心拖动旋转");
 }
 
 function popText(event, text) {
@@ -694,7 +834,7 @@ function closeGuide(markSeen = true) {
 function nextGuideStep() {
   if (guideIndex >= guideSteps.length - 1) {
     closeGuide(true);
-    toast("新手指南完成，开始盘串吧");
+    toast("新手指南完成，开始盘珠吧");
     return;
   }
   guideIndex += 1;
@@ -1252,8 +1392,25 @@ function toast(message) {
 }
 
 function bindEvents() {
-  elements.tapTarget.addEventListener("click", handleTap);
-  elements.mainTapButton.addEventListener("click", handleTap);
+  bgmAudio.addEventListener("ended", playNextBgm);
+  elements.bgmButton.addEventListener("click", toggleBgm);
+  document.addEventListener("pointerdown", startBgmAfterGesture, { once: true });
+  document.addEventListener("keydown", startBgmAfterGesture, { once: true });
+
+  elements.tapTarget.addEventListener("pointerdown", startPolishing);
+  elements.tapTarget.addEventListener("pointermove", rotatePolishing);
+  elements.tapTarget.addEventListener("pointerup", stopPolishing);
+  elements.tapTarget.addEventListener("pointercancel", stopPolishing);
+  elements.tapTarget.addEventListener("click", (event) => {
+    if (polishingState.moved) {
+      event.preventDefault();
+      polishingState.moved = false;
+      return;
+    }
+    event.preventDefault();
+    showPolishHint();
+  });
+  elements.mainTapButton.addEventListener("click", showPolishHint);
   elements.upgradeBraceletButton.addEventListener("click", upgradeBracelet);
   elements.guideButton.addEventListener("click", () => openGuide(0));
   elements.guideSkipButton.addEventListener("click", () => closeGuide(true));
@@ -1338,6 +1495,7 @@ function switchTab(tab) {
 
 bindEvents();
 render();
+syncBgmButton();
 saveState();
 if (!state.tutorialSeen) {
   requestAnimationFrame(() => openGuide(0));

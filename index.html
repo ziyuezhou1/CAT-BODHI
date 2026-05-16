@@ -15,6 +15,10 @@
             <h1 class="visually-hidden">猫猫盘珠日记</h1>
             <p id="saveStatus">存档待同步</p>
           </div>
+          <button class="audio-button ghost-button" id="bgmButton" type="button" aria-pressed="true">
+            <span class="ui-icon sparkle" aria-hidden="true"></span>
+            <span id="bgmLabel">音乐待启</span>
+          </button>
           <button class="guide-button ghost-button" id="guideButton" type="button">
             <span class="ui-icon sparkle" aria-hidden="true"></span>
             <span>玩法</span>
@@ -40,14 +44,14 @@
             <span class="sprite jade" aria-hidden="true"></span>
             <div>
               <strong id="tapValue">+1</strong>
-              <small>盘串</small>
+              <small>盘珠</small>
             </div>
           </article>
         </section>
       </header>
 
       <section class="play-layout">
-        <section class="stage pixel-panel" aria-label="猫猫盘串场景">
+        <section class="stage pixel-panel" aria-label="猫猫盘珠场景">
           <div class="room-scene">
             <div class="stage-sky" aria-hidden="true"></div>
             <div class="stage-rail" aria-hidden="true"></div>
@@ -64,7 +68,7 @@
           </div>
 
           <div class="station-zone">
-            <button class="altar" id="tapTarget" type="button" aria-label="盘动手串">
+            <button class="altar" id="tapTarget" type="button" aria-label="按住并旋转手串">
               <span class="station-art" aria-hidden="true"></span>
               <span class="bracelet-sprite bodhi-root altar-bracelet" id="altarBracelet" aria-hidden="true"></span>
               <span class="altar-core">
@@ -76,7 +80,7 @@
             <div class="ritual-bar">
               <button class="primary-action" id="mainTapButton" type="button">
                 <span class="ui-icon sparkle" aria-hidden="true"></span>
-                <span>盘串</span>
+                <span>拖动手串</span>
               </button>
               <button class="soft-action" id="upgradeBraceletButton" type="button">
                 <span class="ui-icon arrow" aria-hidden="true"></span>

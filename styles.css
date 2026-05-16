@@ -158,13 +158,23 @@ button {
   font-size: 0.82rem;
 }
 
+.audio-button,
 .guide-button {
   min-width: 78px;
   min-height: 38px;
-  margin-left: auto;
   padding: 5px 8px;
 }
 
+.audio-button {
+  margin-left: auto;
+}
+
+.audio-button.off {
+  opacity: 0.72;
+  filter: grayscale(0.35);
+}
+
+.audio-button .ui-icon,
 .guide-button .ui-icon {
   width: 18px;
   height: 18px;
@@ -561,12 +571,18 @@ button {
   box-shadow: none;
   z-index: 5;
   transition: transform 130ms ease;
+  touch-action: none;
+  user-select: none;
   -webkit-tap-highlight-color: transparent;
 }
 
 .altar:active,
 .altar.pulse {
   transform: translateY(4px) scale(0.985);
+}
+
+.altar.polishing {
+  cursor: grabbing;
 }
 
 .altar-bracelet {
@@ -577,7 +593,15 @@ button {
   width: 33%;
   height: 58%;
   translate: -50% -50%;
-  animation: trayTurn 24s linear infinite;
+  rotate: var(--bracelet-rotation, 0deg);
+  transform-origin: center;
+  transition: rotate 70ms linear, filter 120ms ease;
+  will-change: rotate;
+  pointer-events: none;
+}
+
+.altar.polishing .altar-bracelet {
+  filter: drop-shadow(0 0 12px rgba(255, 240, 164, 0.95)) brightness(1.08);
 }
 
 .station-art {
@@ -1116,12 +1140,6 @@ button:disabled {
   }
 }
 
-@keyframes trayTurn {
-  to {
-    rotate: 360deg;
-  }
-}
-
 @keyframes catHop {
   0%, 100% {
     translate: 0 0;
@@ -1191,10 +1209,12 @@ button:disabled {
 }
 
 @media (max-width: 640px) {
+  .audio-button,
   .guide-button {
     min-width: 42px;
   }
 
+  .audio-button span:last-child,
   .guide-button span:last-child {
     display: none;
   }
