@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="zh-Hans">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>猫猫盘串铺</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="game-shell">
+      <header class="topbar pixel-panel">
+        <div class="brand-lockup">
+          <div class="ui-emblem ui-tab" aria-hidden="true"></div>
+          <div>
+            <h1>猫猫盘串铺</h1>
+            <p id="saveStatus">存档待同步</p>
+          </div>
+        </div>
+
+        <section class="resource-strip" aria-label="资源">
+          <article class="resource-card">
+            <span class="sprite token" aria-hidden="true"></span>
+            <div>
+              <strong id="zenValue">0</strong>
+              <small>禅意</small>
+            </div>
+          </article>
+          <article class="resource-card">
+            <span class="sprite incense" aria-hidden="true"></span>
+            <div>
+              <strong id="ppsValue">0/s</strong>
+              <small>猫息</small>
+            </div>
+          </article>
+          <article class="resource-card">
+            <span class="sprite jade" aria-hidden="true"></span>
+            <div>
+              <strong id="tapValue">+1</strong>
+              <small>盘串</small>
+            </div>
+          </article>
+        </section>
+      </header>
+
+      <section class="play-layout">
+        <section class="stage pixel-panel" aria-label="猫猫盘串场景">
+          <div class="room-scene">
+            <div class="stage-sky" aria-hidden="true"></div>
+            <div class="stage-rail" aria-hidden="true"></div>
+            <div class="decor-layer" id="decorLayer" aria-hidden="true"></div>
+            <div class="cat-layer" id="catLayer" aria-hidden="true"></div>
+          </div>
+
+          <div class="station-zone">
+            <button class="altar" id="tapTarget" type="button" aria-label="盘动手串">
+              <span class="station-art" aria-hidden="true"></span>
+              <span class="bracelet-sprite bodhi-root altar-bracelet" id="altarBracelet" aria-hidden="true"></span>
+              <span class="altar-core">
+                <b id="braceletName">菩提根</b>
+                <small id="braceletLevel">Lv. 1</small>
+              </span>
+            </button>
+
+            <div class="ritual-bar">
+              <button class="primary-action" id="mainTapButton" type="button">
+                <span class="ui-icon sparkle" aria-hidden="true"></span>
+                <span>盘串</span>
+              </button>
+              <button class="soft-action" id="upgradeBraceletButton" type="button">
+                <span class="ui-icon arrow" aria-hidden="true"></span>
+                <span id="braceletCost">升级</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="progress-wrap" aria-label="珠串灵光">
+            <div class="progress-label">
+              <span>灵光</span>
+              <strong id="auraLabel">0%</strong>
+            </div>
+            <div class="progress-frame">
+              <div id="auraFill"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-panel pixel-panel">
+          <nav class="tabbar" aria-label="商店分类">
+            <button class="tab-button active" data-tab="cats" type="button">猫缘</button>
+            <button class="tab-button" data-tab="beads" type="button">珠阶</button>
+            <button class="tab-button" data-tab="decor" type="button">装饰</button>
+            <button class="tab-button" data-tab="wishes" type="button">心愿</button>
+          </nav>
+
+          <section class="panel-view active" id="catsView" aria-label="猫缘商店">
+            <div class="shop-list" id="catShop"></div>
+          </section>
+
+          <section class="panel-view" id="beadsView" aria-label="珠阶商店">
+            <div class="bead-board" id="beadBoard"></div>
+          </section>
+
+          <section class="panel-view" id="decorView" aria-label="装饰商店">
+            <div class="decor-list" id="decorShop"></div>
+          </section>
+
+          <section class="panel-view" id="wishesView" aria-label="心愿">
+            <div class="wish-list" id="wishList"></div>
+          </section>
+        </aside>
+      </section>
+
+      <footer class="bottom-dock pixel-panel">
+        <section class="mini-stat">
+          <span>累计禅意</span>
+          <strong id="lifetimeValue">0</strong>
+        </section>
+        <section class="mini-stat">
+          <span>福爪</span>
+          <strong id="pawValue">0</strong>
+        </section>
+        <section class="mini-stat">
+          <span>伙伴</span>
+          <strong id="catCountValue">0</strong>
+        </section>
+        <button class="ghost-button" id="resetButton" type="button">清档</button>
+      </footer>
+    </main>
+
+    <div class="toast-stack" id="toastStack" aria-live="polite"></div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
