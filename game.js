@@ -1394,7 +1394,7 @@ function renderBeads() {
             </div>
             <div class="card-meta">
               <span data-bead-state="${bead.id}">${unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`}</span>
-              <span data-bead-label="${bead.id}">${piece ? `${variantName(bead.id, piece.variant)} · 包浆 ${patina}%` : bead.note}</span>
+              <span data-bead-label="${bead.id}">${braceletPatinaLabel(bead, piece, active)}</span>
               <span data-bead-bonus="${bead.id}">${active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`}</span>
             </div>
             <div class="bead-progress" aria-hidden="true"><span data-bead-progress="${bead.id}" style="width:${patina}%"></span></div>
@@ -1403,7 +1403,7 @@ function renderBeads() {
                 ${active ? "盘玩中" : count > 0 ? "盘这类" : "先添加"}
               </button>
               <button class="shop-button ${canAdd ? "has-upgrade" : "secondary"}" type="button" data-add-bead="${bead.id}" ${canAdd ? "" : "disabled"}>
-                ${unlocked ? `添加 ${formatNumber(cost)}` : "未解锁"}
+                ${unlocked ? `添新串 ${formatNumber(cost)}` : "未解锁"}
               </button>
             </div>
           </div>
@@ -1591,7 +1591,7 @@ function updatePanelState() {
     if (image && piece) image.style.setProperty("--bracelet-image", `url("${braceletAssetPath(bead, piece)}")`);
     if (countLabel) countLabel.textContent = `持有 ${count}`;
     if (stateLabel) stateLabel.textContent = unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`;
-    if (beadLabel) beadLabel.textContent = piece ? `${variantName(bead.id, piece.variant)} · 包浆 ${patina}%` : bead.note;
+    if (beadLabel) beadLabel.textContent = braceletPatinaLabel(bead, piece, active);
     if (bonusLabel) bonusLabel.textContent = active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`;
     if (progressBar) progressBar.style.width = `${patina}%`;
     if (selectButton) {
@@ -1602,7 +1602,7 @@ function updatePanelState() {
       addButton.disabled = !canAdd;
       addButton.classList.toggle("secondary", !canAdd);
       addButton.classList.toggle("has-upgrade", canAdd);
-      addButton.textContent = unlocked ? `添加 ${formatNumber(cost)}` : "未解锁";
+      addButton.textContent = unlocked ? `添新串 ${formatNumber(cost)}` : "未解锁";
     }
   });
 
@@ -1683,6 +1683,7 @@ function renderHud() {
   const nextBraceletCost = braceletCost();
   const { bead: currentBead, piece: currentPiece } = activeBracelet();
   const patina = currentPiece?.patina ?? 0;
+  const patinaComplete = patina >= 1;
 
   elements.zenValue.textContent = formatNumber(state.zen);
   elements.ppsValue.textContent = `${formatNumber(pps)}/s`;
@@ -1692,12 +1693,14 @@ function renderHud() {
   elements.catCountValue.textContent = `${totalCats(state)} / ${cats.length}`;
   elements.braceletName.textContent = currentBead.name;
   elements.braceletLevel.textContent = `${variantName(currentBead.id, currentPiece?.variant)} · ${Math.floor(patina * 100)}%`;
+  elements.braceletStatus.textContent = patinaComplete ? "已包浆，换一个盘玩更好哦" : "放置中，会慢慢养包浆";
+  elements.braceletStatus.title = elements.braceletStatus.textContent;
   elements.braceletCost.textContent = `手法 ${formatNumber(nextBraceletCost)}`;
   elements.altarBracelet.className = `bracelet-sprite ${currentBead.sprite} altar-bracelet`;
   elements.altarBracelet.style.setProperty("--bracelet-image", `url("${braceletAssetPath(currentBead, currentPiece)}")`);
   elements.upgradeBraceletButton.disabled = state.zen < nextBraceletCost;
   elements.upgradeBraceletButton.classList.toggle("has-upgrade", state.zen >= nextBraceletCost);
-  elements.auraLabel.textContent = patina >= 1 ? "满包浆" : `${Math.floor(patina * 100)}%`;
+  elements.auraLabel.textContent = patinaComplete ? "已包浆" : `${Math.floor(patina * 100)}%`;
   elements.auraFill.style.width = `${patina * 100}%`;
 }
 

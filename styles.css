@@ -651,6 +651,18 @@ button {
   font-weight: 900;
 }
 
+.altar-core em {
+  max-width: min(220px, 42vw);
+  color: #8a4b24;
+  font-size: clamp(0.58rem, 0.92vw, 0.72rem);
+  font-style: normal;
+  font-weight: 900;
+  line-height: 1.1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ritual-bar {
   display: grid;
   grid-template-columns: 1fr;
@@ -1486,6 +1498,11 @@ button:disabled.has-upgrade::after {
 
   .altar-core small {
     font-size: 0.64rem;
+  }
+
+  .altar-core em {
+    max-width: min(170px, 50vw);
+    font-size: 0.56rem;
   }
 
   .cat-layer {
