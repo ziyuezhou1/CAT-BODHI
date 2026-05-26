@@ -269,18 +269,18 @@ button {
   -webkit-user-drag: none;
 }
 
-.cat-action-sprite.tabby.action-sit { --cat-image: url("assets/art/v3/cats/tabby-sit.png?v=3"); }
-.cat-action-sprite.tabby.action-jump { --cat-image: url("assets/art/v3/cats/tabby-jump.png?v=3"); }
-.cat-action-sprite.tabby.action-lie { --cat-image: url("assets/art/v3/cats/tabby-lie.png?v=3"); }
-.cat-action-sprite.sleepy.action-sit { --cat-image: url("assets/art/v3/cats/sleepy-sit.png?v=3"); }
-.cat-action-sprite.sleepy.action-jump { --cat-image: url("assets/art/v3/cats/sleepy-jump.png?v=3"); }
-.cat-action-sprite.sleepy.action-lie { --cat-image: url("assets/art/v3/cats/sleepy-lie.png?v=3"); }
-.cat-action-sprite.monk.action-sit { --cat-image: url("assets/art/v3/cats/monk-sit.png?v=3"); }
-.cat-action-sprite.monk.action-jump { --cat-image: url("assets/art/v3/cats/monk-jump.png?v=3"); }
-.cat-action-sprite.monk.action-lie { --cat-image: url("assets/art/v3/cats/monk-lie.png?v=3"); }
-.cat-action-sprite.vendor.action-sit { --cat-image: url("assets/art/v3/cats/vendor-sit.png?v=3"); }
-.cat-action-sprite.vendor.action-jump { --cat-image: url("assets/art/v3/cats/vendor-jump.png?v=3"); }
-.cat-action-sprite.vendor.action-lie { --cat-image: url("assets/art/v3/cats/vendor-lie.png?v=3"); }
+.cat-action-sprite.tabby.action-sit { --cat-image: url("assets/art/v3/cats/tabby-sit.png?v=4"); }
+.cat-action-sprite.tabby.action-jump { --cat-image: url("assets/art/v3/cats/tabby-jump.png?v=4"); }
+.cat-action-sprite.tabby.action-lie { --cat-image: url("assets/art/v3/cats/tabby-lie.png?v=4"); }
+.cat-action-sprite.sleepy.action-sit { --cat-image: url("assets/art/v3/cats/sleepy-sit.png?v=4"); }
+.cat-action-sprite.sleepy.action-jump { --cat-image: url("assets/art/v3/cats/sleepy-jump.png?v=4"); }
+.cat-action-sprite.sleepy.action-lie { --cat-image: url("assets/art/v3/cats/sleepy-lie.png?v=4"); }
+.cat-action-sprite.monk.action-sit { --cat-image: url("assets/art/v3/cats/monk-sit.png?v=4"); }
+.cat-action-sprite.monk.action-jump { --cat-image: url("assets/art/v3/cats/monk-jump.png?v=4"); }
+.cat-action-sprite.monk.action-lie { --cat-image: url("assets/art/v3/cats/monk-lie.png?v=4"); }
+.cat-action-sprite.vendor.action-sit { --cat-image: url("assets/art/v3/cats/vendor-sit.png?v=4"); }
+.cat-action-sprite.vendor.action-jump { --cat-image: url("assets/art/v3/cats/vendor-jump.png?v=4"); }
+.cat-action-sprite.vendor.action-lie { --cat-image: url("assets/art/v3/cats/vendor-lie.png?v=4"); }
 
 .cat-art {
   position: absolute;
