@@ -1,0 +1,69 @@
+{
+  "cats": [
+    "assets/art/v2/cats/tabby-sit.png",
+    "assets/art/v2/cats/tabby-jump.png",
+    "assets/art/v2/cats/tabby-lie.png",
+    "assets/art/v2/cats/sleepy-sit.png",
+    "assets/art/v2/cats/sleepy-jump.png",
+    "assets/art/v2/cats/sleepy-lie.png",
+    "assets/art/v2/cats/monk-sit.png",
+    "assets/art/v2/cats/monk-jump.png",
+    "assets/art/v2/cats/monk-lie.png",
+    "assets/art/v2/cats/vendor-sit.png",
+    "assets/art/v2/cats/vendor-jump.png",
+    "assets/art/v2/cats/vendor-lie.png"
+  ],
+  "bracelets": [
+    "assets/art/v2/bracelets/bodhi-root-pure-0.png",
+    "assets/art/v2/bracelets/bodhi-root-pure-1.png",
+    "assets/art/v2/bracelets/bodhi-root-pure-2.png",
+    "assets/art/v2/bracelets/bodhi-root-pure-3.png",
+    "assets/art/v2/bracelets/bodhi-root-pure-4.png",
+    "assets/art/v2/bracelets/bodhi-root-gradient-0.png",
+    "assets/art/v2/bracelets/bodhi-root-gradient-1.png",
+    "assets/art/v2/bracelets/bodhi-root-gradient-2.png",
+    "assets/art/v2/bracelets/bodhi-root-gradient-3.png",
+    "assets/art/v2/bracelets/bodhi-root-gradient-4.png",
+    "assets/art/v2/bracelets/bodhi-root-duobao-0.png",
+    "assets/art/v2/bracelets/bodhi-root-duobao-1.png",
+    "assets/art/v2/bracelets/bodhi-root-duobao-2.png",
+    "assets/art/v2/bracelets/bodhi-root-duobao-3.png",
+    "assets/art/v2/bracelets/bodhi-root-duobao-4.png",
+    "assets/art/v2/bracelets/monkey-head-default-0.png",
+    "assets/art/v2/bracelets/monkey-head-default-1.png",
+    "assets/art/v2/bracelets/monkey-head-default-2.png",
+    "assets/art/v2/bracelets/monkey-head-default-3.png",
+    "assets/art/v2/bracelets/monkey-head-default-4.png",
+    "assets/art/v2/bracelets/xingyue-default-0.png",
+    "assets/art/v2/bracelets/xingyue-default-1.png",
+    "assets/art/v2/bracelets/xingyue-default-2.png",
+    "assets/art/v2/bracelets/xingyue-default-3.png",
+    "assets/art/v2/bracelets/xingyue-default-4.png",
+    "assets/art/v2/bracelets/vajra-default-0.png",
+    "assets/art/v2/bracelets/vajra-default-1.png",
+    "assets/art/v2/bracelets/vajra-default-2.png",
+    "assets/art/v2/bracelets/vajra-default-3.png",
+    "assets/art/v2/bracelets/vajra-default-4.png"
+  ],
+  "decor": [
+    "assets/art/v2/decor/cat-tree.png",
+    "assets/art/v2/decor/cat-bed.png",
+    "assets/art/v2/decor/scratch-post.png",
+    "assets/art/v2/decor/window-perch.png",
+    "assets/art/v2/decor/toy-basket.png",
+    "assets/art/v2/decor/display-shelf.png"
+  ],
+  "ui": [
+    "assets/art/v2/ui/token.png",
+    "assets/art/v2/ui/incense.png",
+    "assets/art/v2/ui/jade.png",
+    "assets/art/v2/ui/arrow.png",
+    "assets/art/v2/ui/sparkle.png",
+    "assets/art/v2/ui/lock.png",
+    "assets/art/v2/ui/panel-corner.png",
+    "assets/art/v2/ui/game-logo.png"
+  ],
+  "station": [
+    "assets/art/v2/station/bead-station.png"
+  ]
+}

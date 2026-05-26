@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <title>test</title>
+  <desc>Local free pixel-style transformation from uploaded reference.</desc>
+  <defs>
+    <clipPath id="spriteClip"><path d="M210 795 C150 685 170 520 270 405 L205 210 L390 316 C454 292 560 292 624 316 L810 210 L745 405 C845 520 865 685 804 795 C714 910 300 910 210 795 Z"/></clipPath>
+    <filter id="posterPixel" color-interpolation-filters="sRGB">
+      <feComponentTransfer>
+        <feFuncR type="discrete" tableValues="0 .16 .32 .48 .64 .8 1"/>
+        <feFuncG type="discrete" tableValues="0 .16 .32 .48 .64 .8 1"/>
+        <feFuncB type="discrete" tableValues="0 .16 .32 .48 .64 .8 1"/>
+      </feComponentTransfer>
+      <feDropShadow dx="0" dy="18" stdDeviation="0" flood-color="#522912" flood-opacity=".18"/>
+    </filter>
+  </defs>
+  <g style="image-rendering: pixelated">
+    <image href="data:image/png;base64,iVBORw0KGgo=" x="112" y="112" width="800" height="800" preserveAspectRatio="xMidYMid slice" filter="url(#posterPixel)" clip-path="url(#spriteClip)"/>
+    <path d="M210 795 C150 685 170 520 270 405 L205 210 L390 316 C454 292 560 292 624 316 L810 210 L745 405 C845 520 865 685 804 795 C714 910 300 910 210 795 Z" fill="none" stroke="#5a2a14" stroke-width="22" stroke-linejoin="round" opacity=".95"/>
+  </g>
+</svg>

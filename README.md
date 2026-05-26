@@ -80,6 +80,36 @@ python -m http.server 8080
 
 然后打开 `http://localhost:8080`
 
+### AI 形象工坊
+
+猫缘页可以上传现实猫照生成专属猫猫，珠阶页可以上传现实手串照生成新串。页面内置“免费本地像素化（无需 API Key）”，也可以选择千问、豆包、OpenAI 图片模型，或填写自定义模型名。云模型生成时会自动附带项目内已有猫/手串素材作为风格参考，让新图更接近当前像素风。AI 生图需要用本地 Node 服务启动，避免把 API Key 暴露在浏览器里：
+
+```bash
+$env:OPENAI_API_KEY="你的 OpenAI API Key"
+npm run dev:ai
+```
+
+然后打开 `http://localhost:8080`。
+
+千问和豆包也要在启动服务前配置密钥。PowerShell 示例：
+
+```bash
+$env:DASHSCOPE_API_KEY="你的千问 DashScope Key"
+$env:DOUBAO_API_KEY="你的豆包/火山方舟 Key"
+$env:ARK_API_KEY="你的火山方舟 Key"
+npm run dev:ai
+```
+
+也可以在项目根目录新建 `.env`，本地服务启动时会自动读取：
+
+```env
+DASHSCOPE_API_KEY=你的千问 DashScope Key
+DOUBAO_API_KEY=你的豆包/火山方舟 Key
+ARK_API_KEY=你的火山方舟 Key
+```
+
+自定义模型名格式：`openai:gpt-image-1.5`、`qwen:qwen-image-2.0-pro`、`doubao:你的模型名`。可通过 `$env:OPENAI_IMAGE_MODEL`、`$env:QWEN_IMAGE_ENDPOINT`、`$env:DOUBAO_IMAGE_ENDPOINT` 调整服务端默认模型或接口地址。豆包参考图字段默认是方舟接口的 `image`；如果接入其他豆包兼容接口，可用 `$env:DOUBAO_REFERENCE_FIELD="reference_images"` 切换。
+
 ---
 
 ## 📂 项目结构
@@ -87,6 +117,7 @@ python -m http.server 8080
 ```
 CAT-BODHI/
 ├── index.html          # 游戏入口
+├── server.mjs          # 本地 AI 图片生成代理与静态服务器
 ├── game.js             # 核心逻辑 (状态管理 / 数值系统 / UI 渲染)
 ├── styles.css          # 像素风视觉系统
 └── assets/

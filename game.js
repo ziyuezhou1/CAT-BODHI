@@ -6,26 +6,34 @@ const bgmTracks = [
 ];
 
 const BALANCE = {
-  version: 3,
+  version: 4,
   upgradePaceMinutes: [
     0.35, 0.65, 1, 1.5, 2.2, 3.2, 4.8, 7, 10, 14,
     19, 25, 32, 41, 52, 66, 82, 102, 126, 155,
   ],
   latePaceGrowth: 1.16,
+  baseZenPerSecond: 1,
+  manualBaseGain: 1,
+  manualPatinaGain: 0.002,
+  basePatinaRate: 1 / 720,
+  mainBraceletBonus: 1.2,
+  mainPatinaSpeed: 1.5,
+  patinaStageNew: 1,
+  patinaStagePlaying: 1.3,
+  patinaStageRush: 1.6,
+  patinaStageComplete: 0.35,
+  typeOwnedBonus: 0.08,
+  typeOwnedExponent: 0.7,
+  prestigePawBonus: 0.12,
+  offlineFullHours: 12,
+  offlineReducedHours: 12,
+  offlineReducedRate: 0.2,
+  maxOfflineHours: 24,
+  moodDecayPerHour: 5,
+  satietyDecayPerHour: 7,
   pricingTapRate: 0.16,
   pricingFloor: 0.22,
-  duplicateCatBonus: 0.055,
-  braceletPassiveGrowth: 1.14,
-  braceletTapGrowth: 1.22,
-  uniqueCatBonus: 0.05,
-  pawBonus: 0.035,
-  beadOwnedBonus: 0.12,
-  beadArchiveBonus: 0.045,
-  activeGrowingBonus: 1.62,
-  activeGrowingFinishBonus: 0.52,
-  completedBraceletFocus: 0.72,
-  patinaSeconds: 3600,
-  polishPatinaBoost: 2.5,
+  handcraftGrowth: 1.08,
 };
 
 const cats = [
@@ -33,45 +41,53 @@ const cats = [
     id: "tabby",
     name: "橘串师",
     sprite: "tabby",
-    baseCost: 24,
-    paceWeight: 0.72,
-    pps: 0.72,
+    baseCost: 300,
+    costGrowth: 1.18,
+    baseZenRate: 0.25,
+    basePatinaPower: 1,
+    effect: "包浆速度提升",
     unlock: 0,
   },
   {
     id: "sleepy",
     name: "白团守垫",
     sprite: "sleepy",
-    baseCost: 150,
-    paceWeight: 0.92,
-    pps: 3.6,
+    baseCost: 1800,
+    costGrowth: 1.19,
+    baseZenRate: 1,
+    basePatinaPower: 2,
+    effect: "离线收益提升",
     unlock: 260,
   },
   {
     id: "monk",
     name: "黑禅猫",
     sprite: "monk",
-    baseCost: 1800,
-    paceWeight: 1.18,
-    pps: 18,
+    baseCost: 10800,
+    costGrowth: 1.2,
+    baseZenRate: 4,
+    basePatinaPower: 4,
+    effect: "手串收益提升",
     unlock: 2800,
   },
   {
     id: "vendor",
     name: "三花掌柜",
     sprite: "vendor",
-    baseCost: 18000,
-    paceWeight: 1.38,
-    pps: 90,
+    baseCost: 64800,
+    costGrowth: 1.21,
+    baseZenRate: 16,
+    basePatinaPower: 8,
+    effect: "自动盘玩速度提升",
     unlock: 30000,
   },
 ];
 
 const beads = [
-  { id: "bodhi-root", name: "菩提根", sprite: "bodhi-root", threshold: 0, multiplier: 1, addBaseCost: 36, paceWeight: 0.54, note: "纯色/渐变/多宝随机" },
-  { id: "monkey-head", name: "猴头", sprite: "monkey-head", threshold: 6500, multiplier: 1.65, addBaseCost: 980, paceWeight: 0.82, note: "核纹红润" },
-  { id: "xingyue", name: "星月菩提", sprite: "xingyue", threshold: 75000, multiplier: 2.8, addBaseCost: 9800, paceWeight: 1.08, note: "星点月眼" },
-  { id: "vajra", name: "小金刚", sprite: "vajra", threshold: 650000, multiplier: 4.6, addBaseCost: 85000, paceWeight: 1.32, note: "深纹金刚" },
+  { id: "bodhi-root", name: "菩提根", sprite: "bodhi-root", threshold: 0, unlockCost: 0, baseCost: 100, costGrowth: 1.18, baseBonus: 0.03, patinaDifficulty: 1, note: "纯色/渐变/多宝随机" },
+  { id: "monkey-head", name: "猴头", sprite: "monkey-head", threshold: 1500, unlockCost: 1500, baseCost: 1500, costGrowth: 1.2, baseBonus: 0.08, patinaDifficulty: 3, note: "核纹红润" },
+  { id: "xingyue", name: "星月菩提", sprite: "xingyue", threshold: 12000, unlockCost: 12000, baseCost: 12000, costGrowth: 1.22, baseBonus: 0.18, patinaDifficulty: 8, note: "星点月眼" },
+  { id: "vajra", name: "小金刚", sprite: "vajra", threshold: 80000, unlockCost: 80000, baseCost: 80000, costGrowth: 1.24, baseBonus: 0.45, patinaDifficulty: 20, note: "深纹金刚" },
 ];
 
 const bodhiVariants = [
@@ -95,72 +111,72 @@ const decorations = [
     name: "猫爬架",
     sprite: "cat-tree",
     baseCost: 22,
-    paceWeight: 0.76,
+    costGrowth: 1.23,
     unlock: 0,
     maxLevel: 12,
-    effect: "catMult",
-    value: 0.16,
-    note: "猫息 +16%/级",
+    effect: "catZen",
+    value: 0.06,
+    note: "猫息 +6%/级",
   },
   {
     id: "cat-bed",
     name: "猫窝",
     sprite: "cat-bed",
     baseCost: 90,
-    paceWeight: 0.8,
+    costGrowth: 1.24,
     unlock: 120,
     maxLevel: 12,
-    effect: "flatPps",
-    value: 0.55,
-    note: "安睡猫息 +0.55/s/级",
+    effect: "moodCare",
+    value: 0.1,
+    note: "心情下降 -10%/级",
   },
   {
     id: "scratch-post",
     name: "抓抓柱",
     sprite: "scratch-post",
     baseCost: 480,
-    paceWeight: 0.92,
+    costGrowth: 1.25,
     unlock: 800,
     maxLevel: 10,
-    effect: "tapMult",
-    value: 0.2,
-    note: "盘珠 +20%/级",
+    effect: "manual",
+    value: 0.05,
+    note: "手动盘珠 +5%/级",
   },
   {
     id: "window-perch",
     name: "窗台软垫",
     sprite: "window-perch",
     baseCost: 2500,
-    paceWeight: 1.04,
+    costGrowth: 1.26,
     unlock: 3500,
     maxLevel: 10,
-    effect: "catMult",
-    value: 0.22,
-    note: "猫息 +22%/级",
+    effect: "patina",
+    value: 0.08,
+    note: "包浆速度 +8%/级",
   },
   {
     id: "toy-basket",
     name: "玩具篮",
     sprite: "toy-basket",
     baseCost: 12000,
-    paceWeight: 1.12,
+    costGrowth: 1.27,
     unlock: 18000,
     maxLevel: 8,
-    effect: "tapMult",
-    value: 0.28,
-    note: "盘珠 +28%/级",
+    effect: "satietyCare",
+    value: 0.1,
+    note: "饱食下降 -10%/级",
   },
   {
     id: "display-shelf",
     name: "文玩柜",
     sprite: "display-shelf",
     baseCost: 65000,
-    paceWeight: 1.22,
+    costGrowth: 1.28,
     unlock: 80000,
     maxLevel: 8,
-    effect: "allMult",
-    value: 0.16,
-    note: "全产出 +16%/级",
+    effect: "bracelet",
+    value: 0.05,
+    note: "手串总加成 +5%/级",
   },
 ];
 
@@ -180,11 +196,16 @@ const pawTalents = [
 ];
 
 function makeBeadPiece(beadId, variant = "default", patina = 0) {
+  const now = Date.now();
   return {
     id: `${beadId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    type: beadId,
     variant,
     patina,
-    addedAt: Date.now(),
+    isMain: false,
+    addedAt: now,
+    createdAt: now,
+    completedAt: patina >= 1 ? now : null,
   };
 }
 
@@ -195,25 +216,36 @@ function starterBeadCollections() {
   };
 }
 
-const defaultState = () => ({
-  zen: 0,
-  totalZen: 0,
-  braceletLevel: 1,
-  selectedBead: "bodhi-root",
-  beadCollections: starterBeadCollections(),
-  catCounts: { ...Object.fromEntries(cats.map((cat) => [cat.id, 0])), tabby: 1 },
-  catPlacements: {},
-  decorationLevels: Object.fromEntries(decorations.map((decor) => [decor.id, 0])),
-  pawTalentLevels: Object.fromEntries(pawTalents.map((talent) => [talent.id, 0])),
-  claimedWishes: {},
-  paws: 0,
-  taps: 0,
-  bgmEnabled: true,
-  tutorialSeen: false,
-  balanceVersion: BALANCE.version,
-  upgradePaceStep: 0,
-  lastSaved: Date.now(),
-});
+const defaultState = () => {
+  const beadCollections = starterBeadCollections();
+  const starterBracelet = beadCollections["bodhi-root"][0];
+  starterBracelet.isMain = true;
+  return {
+    zen: 0,
+    totalZen: 0,
+    braceletLevel: 1,
+    selectedBead: "bodhi-root",
+    mainBraceletId: starterBracelet.id,
+    beadCollections,
+    customCats: [],
+    customBeads: [],
+    catCounts: { ...Object.fromEntries(cats.map((cat) => [cat.id, 0])), tabby: 1 },
+    catMood: Object.fromEntries(cats.map((cat) => [cat.id, 100])),
+    catSatiety: Object.fromEntries(cats.map((cat) => [cat.id, 100])),
+    catPlacements: {},
+    decorationPlacements: {},
+    decorationLevels: Object.fromEntries(decorations.map((decor) => [decor.id, 0])),
+    pawTalentLevels: Object.fromEntries(pawTalents.map((talent) => [talent.id, 0])),
+    claimedWishes: {},
+    paws: 0,
+    taps: 0,
+    bgmEnabled: true,
+    tutorialSeen: false,
+    balanceVersion: BALANCE.version,
+    upgradePaceStep: 0,
+    lastSaved: Date.now(),
+  };
+};
 
 let state = loadState();
 let lastTick = performance.now();
@@ -230,14 +262,14 @@ const catActivityWeights = [
   { activity: "run", spriteAction: "sit", weight: 5, mood: "短跑" },
 ];
 const catActivityZones = [
-  { id: "pad-left", x: 5, minX: 3, maxX: 12, bottom: 2, scale: 1.08, z: 8, allowed: ["sit", "lie"] },
-  { id: "floor-left", x: 17, minX: 10, maxX: 27, bottom: 4, scale: 0.98, z: 9, allowed: ["sit", "lie", "walk", "play"] },
-  { id: "floor-mid", x: 34, minX: 25, maxX: 47, bottom: 3, scale: 1, z: 10, allowed: ["sit", "walk", "play", "jump"] },
-  { id: "rug-front", x: 48, minX: 38, maxX: 60, bottom: 0, scale: 1.12, z: 12, allowed: ["sit", "lie", "walk", "run"] },
-  { id: "floor-right", x: 63, minX: 53, maxX: 75, bottom: 5, scale: 0.98, z: 11, allowed: ["sit", "walk", "play", "jump"] },
-  { id: "rack-right", x: 78, minX: 72, maxX: 88, bottom: 8, scale: 0.92, z: 9, allowed: ["sit", "lie", "play"] },
-  { id: "window-back", x: 22, minX: 16, maxX: 30, bottom: 43, scale: 0.78, z: 5, allowed: ["sit", "lie"] },
-  { id: "shelf-back", x: 86, minX: 80, maxX: 92, bottom: 38, scale: 0.8, z: 5, allowed: ["sit", "lie"] },
+  { id: "pad-left", x: 5, minX: 3, maxX: 12, bottom: 2, z: 8, allowed: ["sit", "lie"] },
+  { id: "floor-left", x: 17, minX: 10, maxX: 27, bottom: 4, z: 9, allowed: ["sit", "lie", "walk", "play"] },
+  { id: "floor-mid", x: 34, minX: 25, maxX: 47, bottom: 3, z: 10, allowed: ["sit", "walk", "play", "jump"] },
+  { id: "rug-front", x: 48, minX: 38, maxX: 60, bottom: 0, z: 12, allowed: ["sit", "lie", "walk", "run"] },
+  { id: "floor-right", x: 63, minX: 53, maxX: 75, bottom: 5, z: 11, allowed: ["sit", "walk", "play", "jump"] },
+  { id: "rack-right", x: 78, minX: 72, maxX: 88, bottom: 8, z: 9, allowed: ["sit", "lie", "play"] },
+  { id: "window-back", x: 22, minX: 16, maxX: 30, bottom: 43, z: 5, allowed: ["sit", "lie"] },
+  { id: "shelf-back", x: 86, minX: 80, maxX: 92, bottom: 38, z: 5, allowed: ["sit", "lie"] },
 ];
 const guideSteps = [
   {
@@ -275,7 +307,7 @@ const guideSteps = [
   {
     title: "看包浆和心愿",
     text: "包浆条显示当前手串养到哪里；心愿完成后给福爪，福爪能在心愿页兑换永久加成。",
-    hint: "猫咪可以拖动摆放，也会自己走动换动作。出现感叹号时，说明那个养成项已经能升级。",
+    hint: "猫咪和装饰都可以拖动摆放；猫咪也会自己走动换动作。出现感叹号时，说明那个养成项已经能升级。",
     target: ".progress-wrap",
     tab: "wishes",
   },
@@ -291,6 +323,7 @@ const polishingState = {
   lastAngle: 0,
   progressDegrees: 0,
   moved: false,
+  patinaChanged: false,
 };
 const POLISH_STEP_DEGREES = 38;
 const catDragState = {
@@ -298,6 +331,17 @@ const catDragState = {
   pointerId: null,
   element: null,
   key: "",
+  startX: 0,
+  startY: 0,
+  offsetX: 0,
+  offsetBottom: 0,
+  moved: false,
+};
+const decorDragState = {
+  active: false,
+  pointerId: null,
+  element: null,
+  decorId: "",
   startX: 0,
   startY: 0,
   offsetX: 0,
@@ -321,7 +365,26 @@ const elements = {
   altarBracelet: $("#altarBracelet"),
   auraLabel: $("#auraLabel"),
   auraFill: $("#auraFill"),
+  nextGoalText: $("#nextGoalText"),
   saveStatus: $("#saveStatus"),
+  catAiForm: $("#catAiForm"),
+  catAiName: $("#catAiName"),
+  catAiNote: $("#catAiNote"),
+  catAiModel: $("#catAiModel"),
+  catAiCustomModel: $("#catAiCustomModel"),
+  catAiApiKey: $("#catAiApiKey"),
+  catAiPhoto: $("#catAiPhoto"),
+  catAiButton: $("#catAiButton"),
+  catAiStatus: $("#catAiStatus"),
+  beadAiForm: $("#beadAiForm"),
+  beadAiName: $("#beadAiName"),
+  beadAiNote: $("#beadAiNote"),
+  beadAiModel: $("#beadAiModel"),
+  beadAiCustomModel: $("#beadAiCustomModel"),
+  beadAiApiKey: $("#beadAiApiKey"),
+  beadAiPhoto: $("#beadAiPhoto"),
+  beadAiButton: $("#beadAiButton"),
+  beadAiStatus: $("#beadAiStatus"),
   catShop: $("#catShop"),
   beadBoard: $("#beadBoard"),
   decorShop: $("#decorShop"),
@@ -352,6 +415,9 @@ const elements = {
   guideNextButton: $("#guideNextButton"),
   guideCloseButton: $("#guideCloseButton"),
   toastStack: $("#toastStack"),
+  exportSaveButton: $("#exportSaveButton"),
+  importSaveButton: $("#importSaveButton"),
+  importSaveInput: $("#importSaveInput"),
   resetButton: $("#resetButton"),
 };
 
@@ -361,16 +427,88 @@ bgmAudio.volume = 0.38;
 let bgmIndex = 0;
 let bgmStarted = false;
 
+function slugifyId(value, prefix = "ai") {
+  const ascii = String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+  return `${prefix}-${ascii || Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function normalizeCustomCats(items = []) {
+  return (Array.isArray(items) ? items : [])
+    .filter((cat) => cat && cat.id && cat.imageUrl)
+    .map((cat) => ({
+      id: String(cat.id),
+      name: String(cat.name || "AI猫猫").slice(0, 18),
+      sprite: "custom-cat",
+      imageUrl: String(cat.imageUrl),
+      baseCost: Math.max(1, Number(cat.baseCost ?? 900)),
+      costGrowth: Math.max(1.01, Number(cat.costGrowth ?? 1.18)),
+      baseZenRate: Math.max(0.1, Number(cat.baseZenRate ?? 1.2)),
+      basePatinaPower: Math.max(0.5, Number(cat.basePatinaPower ?? 2)),
+      effect: String(cat.effect || "AI专属猫息"),
+      unlock: Math.max(0, Number(cat.unlock ?? 0)),
+      custom: true,
+    }));
+}
+
+function normalizeCustomBeads(items = []) {
+  return (Array.isArray(items) ? items : [])
+    .filter((bead) => bead && bead.id && bead.imageUrl)
+    .map((bead) => ({
+      id: String(bead.id),
+      name: String(bead.name || "AI新串").slice(0, 18),
+      sprite: "custom-bead",
+      imageUrl: String(bead.imageUrl),
+      threshold: Math.max(0, Number(bead.threshold ?? 0)),
+      unlockCost: Math.max(0, Number(bead.unlockCost ?? 0)),
+      baseCost: Math.max(1, Number(bead.baseCost ?? 1200)),
+      costGrowth: Math.max(1.01, Number(bead.costGrowth ?? 1.2)),
+      baseBonus: Math.max(0.01, Number(bead.baseBonus ?? 0.12)),
+      patinaDifficulty: Math.max(1, Number(bead.patinaDifficulty ?? 4)),
+      note: String(bead.note || "AI设计新串"),
+      custom: true,
+    }));
+}
+
+function allCats(current = state) {
+  return [...cats, ...normalizeCustomCats(current?.customCats ?? [])];
+}
+
+function allBeads(current = state) {
+  return [...beads, ...normalizeCustomBeads(current?.customBeads ?? [])];
+}
+
+function spriteInlineStyle(imageUrl) {
+  return imageUrl ? ` style="background-image:url('${escapeHtml(imageUrl)}')"` : "";
+}
+
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
     const merged = { ...defaultState(), ...saved };
+    merged.customCats = normalizeCustomCats(saved?.customCats ?? []);
+    merged.customBeads = normalizeCustomBeads(saved?.customBeads ?? []);
     merged.beadCollections = {
       ...starterBeadCollections(),
       ...(saved?.beadCollections ?? {}),
     };
-    merged.catCounts = { ...defaultState().catCounts, ...(saved?.catCounts ?? {}) };
+    merged.catCounts = { ...defaultState().catCounts, ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 0])), ...(saved?.catCounts ?? {}) };
+    merged.catMood = { ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 100])), ...(saved?.catMood ?? {}) };
+    merged.catSatiety = { ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 100])), ...(saved?.catSatiety ?? {}) };
     merged.catPlacements = { ...(saved?.catPlacements ?? {}) };
+    merged.decorationPlacements = { ...(saved?.decorationPlacements ?? {}) };
     merged.decorationLevels = { ...defaultState().decorationLevels, ...(saved?.decorationLevels ?? {}) };
     merged.pawTalentLevels = { ...defaultState().pawTalentLevels, ...(saved?.pawTalentLevels ?? {}) };
     merged.claimedWishes = { ...(saved?.claimedWishes ?? {}) };
@@ -379,19 +517,21 @@ function loadState() {
       merged.balanceVersion = BALANCE.version;
     }
     merged.selectedBead = beadIdMigration[merged.selectedBead] ?? merged.selectedBead;
-    if (!beads.some((bead) => bead.id === merged.selectedBead)) merged.selectedBead = "bodhi-root";
+    if (!allBeads(merged).some((bead) => bead.id === merged.selectedBead)) merged.selectedBead = "bodhi-root";
     ensureBeadCollections(merged);
+    ensureMainBracelet(merged);
     if (!beadCollection(merged.selectedBead, merged).length) merged.selectedBead = firstOwnedBeadId(merged);
 
-    const elapsedSeconds = Math.max(0, Math.min(8 * 3600, (Date.now() - (merged.lastSaved ?? Date.now())) / 1000));
+    const elapsedSeconds = Math.max(0, Math.min(BALANCE.maxOfflineHours * 3600, (Date.now() - (merged.lastSaved ?? Date.now())) / 1000));
     if (elapsedSeconds > 15) {
-      const offlineGain = productionPerSecond(merged) * elapsedSeconds * 0.65;
+      decayCatCare(elapsedSeconds, merged);
+      const offlineGain = getOfflineGain(productionPerSecond(merged), elapsedSeconds);
       if (offlineGain > 0) {
         merged.zen += offlineGain;
         merged.totalZen += offlineGain;
         requestAnimationFrame(() => toast(`离线收获 ${formatNumber(offlineGain)} 禅意`));
       }
-      advanceActiveBraceletPatina(elapsedSeconds * 0.65, merged, false);
+      advanceActiveBraceletPatina(elapsedSeconds, merged, false);
     }
 
     return merged;
@@ -404,6 +544,89 @@ function saveState() {
   state.lastSaved = Date.now();
   localStorage.setItem(SAVE_KEY, JSON.stringify(state));
   elements.saveStatus.textContent = `已存档 ${new Date().toLocaleTimeString("zh-Hans", { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+function saveExportPayload() {
+  return {
+    app: "cat-bodhi",
+    saveKey: SAVE_KEY,
+    exportedAt: new Date().toISOString(),
+    version: BALANCE.version,
+    state,
+  };
+}
+
+function exportSave() {
+  saveState();
+  const payload = JSON.stringify(saveExportPayload(), null, 2);
+  const blob = new Blob([payload], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `cat-bodhi-save-${stamp}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  toast("存档已导出");
+}
+
+function normalizeImportedSave(raw) {
+  const imported = raw?.state && typeof raw.state === "object" ? raw.state : raw;
+  if (!imported || typeof imported !== "object") {
+    throw new Error("存档格式不正确");
+  }
+  if (!Number.isFinite(Number(imported.zen)) || !Number.isFinite(Number(imported.totalZen))) {
+    throw new Error("存档缺少必要资源数据");
+  }
+  const base = defaultState();
+  const merged = {
+    ...base,
+    ...imported,
+    zen: Math.max(0, Number(imported.zen ?? 0)),
+    totalZen: Math.max(0, Number(imported.totalZen ?? 0)),
+    braceletLevel: Math.max(1, Number(imported.braceletLevel ?? 1)),
+    customCats: normalizeCustomCats(imported.customCats ?? []),
+    customBeads: normalizeCustomBeads(imported.customBeads ?? []),
+    catPlacements: { ...(imported.catPlacements ?? {}) },
+    decorationPlacements: { ...(imported.decorationPlacements ?? {}) },
+    claimedWishes: { ...(imported.claimedWishes ?? {}) },
+    lastSaved: Date.now(),
+  };
+  merged.catCounts = { ...base.catCounts, ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 0])), ...(imported.catCounts ?? {}) };
+  merged.catMood = { ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 100])), ...(imported.catMood ?? {}) };
+  merged.catSatiety = { ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 100])), ...(imported.catSatiety ?? {}) };
+  merged.decorationLevels = { ...base.decorationLevels, ...(imported.decorationLevels ?? {}) };
+  merged.pawTalentLevels = { ...base.pawTalentLevels, ...(imported.pawTalentLevels ?? {}) };
+  merged.beadCollections = { ...starterBeadCollections(), ...(imported.beadCollections ?? {}) };
+  ensureBeadCollections(merged);
+  ensureMainBracelet(merged);
+  if (!allBeads(merged).some((bead) => bead.id === merged.selectedBead)) merged.selectedBead = firstOwnedBeadId(merged);
+  merged.balanceVersion = BALANCE.version;
+  if (!Number.isFinite(merged.upgradePaceStep)) merged.upgradePaceStep = estimateUpgradePaceStep(merged);
+  return merged;
+}
+
+async function importSaveFile(file) {
+  if (!file) return;
+  try {
+    const text = await file.text();
+    const raw = JSON.parse(text);
+    const nextState = normalizeImportedSave(raw);
+    if (!confirm("导入会覆盖当前猫猫盘珠日记存档，确定继续？")) return;
+    state = nextState;
+    catVisualState.clear();
+    closeCatGroupPanel();
+    saveState();
+    render();
+    syncBgmButton();
+    toast("存档已导入");
+  } catch (error) {
+    toast(`导入失败：${error.message || "文件无法读取"}`);
+  } finally {
+    elements.importSaveInput.value = "";
+  }
 }
 
 function syncBgmButton() {
@@ -491,29 +714,59 @@ function variantName(beadId, variantId = "default") {
   return defaultVariant.name;
 }
 
+function normalizeBeadPiece(bead, piece, index) {
+  const item = piece && typeof piece === "object" ? piece : {};
+  const now = Date.now();
+  const bodhiVariant = bodhiVariants.some((variant) => variant.id === item.variant) ? item.variant : "pure";
+  item.id = item.id ?? `${bead.id}-migrated-${index}`;
+  item.type = bead.id;
+  item.variant = bead.id === "bodhi-root" ? bodhiVariant : "default";
+  item.patina = Math.max(0, Math.min(1, Number(item.patina ?? 0)));
+  item.imageUrl = item.imageUrl ?? bead.imageUrl;
+  item.isMain = Boolean(item.isMain);
+  item.addedAt = item.addedAt ?? now;
+  item.createdAt = item.createdAt ?? item.addedAt ?? now;
+  item.completedAt = item.completedAt ?? (item.patina >= 1 ? now : null);
+  return item;
+}
+
 function ensureBeadCollections(current = state) {
   if (!current.beadCollections || typeof current.beadCollections !== "object") {
     current.beadCollections = starterBeadCollections();
   }
 
-  beads.forEach((bead) => {
+  allBeads(current).forEach((bead) => {
     const collection = Array.isArray(current.beadCollections[bead.id]) ? current.beadCollections[bead.id] : [];
     current.beadCollections[bead.id] = collection
       .filter(Boolean)
-      .map((piece, index) => {
-        const bodhiVariant = bodhiVariants.some((variant) => variant.id === piece.variant) ? piece.variant : "pure";
-        return {
-          id: piece.id ?? `${bead.id}-migrated-${index}`,
-          variant: bead.id === "bodhi-root" ? bodhiVariant : "default",
-          patina: Math.max(0, Math.min(1, Number(piece.patina ?? 0))),
-          addedAt: piece.addedAt ?? Date.now(),
-        };
-      });
+      .map((piece, index) => normalizeBeadPiece(bead, piece, index));
   });
 
   if (!current.beadCollections["bodhi-root"].length) {
     current.beadCollections["bodhi-root"].push(makeBeadPiece("bodhi-root", "pure", 0));
   }
+}
+
+function allBracelets(current = state) {
+  ensureBeadCollections(current);
+  return allBeads(current).flatMap((bead) => {
+    const collection = current.beadCollections[bead.id] ?? [];
+    return collection.map((piece) => ({ bead, piece }));
+  });
+}
+
+function ensureMainBracelet(current = state) {
+  ensureBeadCollections(current);
+  const owned = allBracelets(current);
+  let main = owned.find(({ piece }) => piece.id === current.mainBraceletId);
+  if (!main) {
+    main = owned.find(({ piece }) => piece.patina < 1) ?? owned[0];
+    current.mainBraceletId = main?.piece.id ?? "";
+  }
+  owned.forEach(({ piece }) => {
+    piece.isMain = piece.id === current.mainBraceletId;
+  });
+  if (main?.bead) current.selectedBead = main.bead.id;
 }
 
 function beadCollection(beadId, current = state) {
@@ -523,19 +776,21 @@ function beadCollection(beadId, current = state) {
 
 function firstOwnedBeadId(current = state) {
   ensureBeadCollections(current);
-  return beads.find((bead) => beadCollection(bead.id, current).length > 0)?.id ?? "bodhi-root";
+  return allBeads(current).find((bead) => beadCollection(bead.id, current).length > 0)?.id ?? "bodhi-root";
 }
 
 function activeBead(current = state) {
-  ensureBeadCollections(current);
-  const unlockedOwned = beads.filter((bead) => current.totalZen >= bead.threshold && beadCollection(bead.id, current).length > 0);
-  return unlockedOwned.find((bead) => bead.id === current.selectedBead) ?? unlockedOwned[0] ?? beads[0];
+  ensureMainBracelet(current);
+  return allBracelets(current).find(({ piece }) => piece.id === current.mainBraceletId)?.bead ?? allBeads(current)[0] ?? beads[0];
 }
 
 function activeBracelet(current = state) {
-  const bead = activeBead(current);
-  const collection = beadCollection(bead.id, current);
-  const piece = [...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1) ?? makeBeadPiece(bead.id, bead.id === "bodhi-root" ? "pure" : "default", 0);
+  ensureMainBracelet(current);
+  const owned = allBracelets(current);
+  const main = owned.find(({ piece }) => piece.id === current.mainBraceletId) ?? owned[0];
+  const bead = main?.bead ?? allBeads(current)[0] ?? beads[0];
+  const collection = current.beadCollections?.[bead.id] ?? [];
+  const piece = main?.piece ?? collection[0] ?? makeBeadPiece(bead.id, bead.id === "bodhi-root" ? "pure" : "default", 0);
   return { bead, piece, collection };
 }
 
@@ -544,8 +799,9 @@ function beadPatinaStage(piece) {
 }
 
 function braceletAssetPath(bead, piece) {
+  if (bead?.imageUrl || piece?.imageUrl) return piece?.imageUrl ?? bead.imageUrl;
   const variant = piece?.variant ?? (bead.id === "bodhi-root" ? "pure" : "default");
-  return `assets/art/bracelets/${bead.id}-${variant}-${beadPatinaStage(piece)}.png`;
+  return `assets/art/v3/bracelets/${bead.id}-${variant}-${beadPatinaStage(piece)}.png`;
 }
 
 function braceletImageStyle(bead, piece) {
@@ -560,28 +816,56 @@ function beadCompletedCount(beadId, current = state) {
   return beadCollection(beadId, current).filter((piece) => piece.patina >= 1).length;
 }
 
-function beadTypeMultiplier(beadId, current = state) {
-  return Math.pow(1 + BALANCE.beadOwnedBonus, Math.max(0, beadOwnedCount(beadId, current) - 1));
+function getPatinaStageMultiplier(patina) {
+  if (patina >= 1) return BALANCE.patinaStageComplete;
+  if (patina >= 0.8) return BALANCE.patinaStageRush;
+  if (patina >= 0.3) return BALANCE.patinaStagePlaying;
+  return BALANCE.patinaStageNew;
 }
 
-function beadArchiveMultiplier(current = state) {
-  return beads.reduce((multiplier, bead) => {
-    return multiplier * Math.pow(1 + BALANCE.beadArchiveBonus, beadCompletedCount(bead.id, current));
-  }, 1);
+function getPatinaStageName(patina) {
+  if (patina >= 1) return "成品沉淀期";
+  if (patina >= 0.8) return "包浆冲刺期";
+  if (patina >= 0.3) return "盘玩期";
+  return "新串期";
+}
+
+function getTypeOwnedMultiplier(count) {
+  if (count <= 1) return 1;
+  return 1 + BALANCE.typeOwnedBonus * Math.pow(count - 1, BALANCE.typeOwnedExponent);
+}
+
+function beadTypeMultiplier(beadId, current = state) {
+  return getTypeOwnedMultiplier(beadOwnedCount(beadId, current));
+}
+
+function isMainBracelet(piece, current = state) {
+  return Boolean(piece && piece.id === current.mainBraceletId);
+}
+
+function getBraceletContribution(bead, piece, current = state) {
+  if (!bead || !piece) return 0;
+  return bead.baseBonus *
+    getPatinaStageMultiplier(piece.patina ?? 0) *
+    beadTypeMultiplier(bead.id, current) *
+    (isMainBracelet(piece, current) ? BALANCE.mainBraceletBonus : 1);
+}
+
+function braceletTotalMultiplier(current = state) {
+  const totalBonus = allBracelets(current).reduce((sum, { bead, piece }) => {
+    return sum + getBraceletContribution(bead, piece, current);
+  }, 0);
+  return (1 + totalBonus) * decorationMultiplier("bracelet", current);
 }
 
 function activeBraceletFocusMultiplier(current = state) {
   const { bead, piece } = activeBracelet(current);
-  const patina = piece?.patina ?? 0;
-  const focus = patina >= 1
-    ? BALANCE.completedBraceletFocus
-    : BALANCE.activeGrowingBonus + patina * BALANCE.activeGrowingFinishBonus;
-  return bead.multiplier * beadTypeMultiplier(bead.id, current) * focus;
+  return 1 + getBraceletContribution(bead, piece, current);
 }
 
 function beadPieceCost(bead, current = state) {
   const count = beadOwnedCount(bead.id, current);
-  return pacedCost(bead.paceWeight, bead.addBaseCost, current) * Math.pow(1.18, count);
+  return Math.floor(bead.baseCost * Math.pow(bead.costGrowth, count));
 }
 
 function canAddBead(bead, current = state) {
@@ -592,14 +876,27 @@ function activePatinaPercent(current = state) {
   return Math.floor((activeBracelet(current).piece?.patina ?? 0) * 100);
 }
 
+function patinaPercentValue(piece) {
+  return Math.max(0, Math.min(100, (piece?.patina ?? 0) * 100));
+}
+
+function formatPatinaPercent(pieceOrValue) {
+  const percent = typeof pieceOrValue === "number"
+    ? Math.max(0, Math.min(100, pieceOrValue * 100))
+    : patinaPercentValue(pieceOrValue);
+  if (percent >= 100) return "100%";
+  if (percent < 1) return `${percent.toFixed(2)}%`;
+  return percent < 10 ? `${percent.toFixed(1)}%` : `${Math.floor(percent)}%`;
+}
+
 function braceletPatinaLabel(bead, piece, active = false) {
   if (!piece) return bead.note;
   if (active && piece.patina >= 1) return "已包浆，换一个盘玩更好哦";
-  return `${variantName(bead.id, piece.variant)} · 包浆 ${Math.floor(piece.patina * 100)}%`;
+  return `${variantName(bead.id, piece.variant)} · ${getPatinaStageName(piece.patina)} · ${formatPatinaPercent(piece)}`;
 }
 
 function uniqueCats(current = state) {
-  return cats.filter((cat) => (current.catCounts[cat.id] ?? 0) > 0).length;
+  return allCats(current).filter((cat) => (current.catCounts[cat.id] ?? 0) > 0).length;
 }
 
 function totalCats(current = state) {
@@ -607,10 +904,7 @@ function totalCats(current = state) {
 }
 
 function visibleCatCount(count) {
-  if (count <= 0) return 0;
-  if (count <= 3) return count;
-  if (count <= 5) return 4;
-  return 5;
+  return Math.max(0, Math.min(count, 5));
 }
 
 function decorationLevel(decor, current = state) {
@@ -652,6 +946,10 @@ function totalPaws(current = state) {
   return current.paws + spentPaws(current);
 }
 
+function availablePrestigePaws(current = state) {
+  return Math.max(0, Math.floor(Math.pow((current.totalZen ?? 0) / 100000, 0.5)) - totalPaws(current));
+}
+
 function estimateUpgradePaceStep(current = state) {
   const earnedBracelets = Math.max(0, (current.braceletLevel ?? 1) - 1);
   const earnedCats = Math.max(0, totalCats(current) - 1);
@@ -671,68 +969,99 @@ function targetUpgradeSeconds(current = state) {
   return tableMinutes * 60 * Math.pow(BALANCE.latePaceGrowth, step - paceTable.length + 1);
 }
 
-function decorationMultiplier(effect, current = state) {
-  return decorations.reduce((multiplier, decor) => {
-    const level = decorationLevel(decor, current);
-    if (decor.effect !== effect && decor.effect !== "allMult") return multiplier;
-    return multiplier * Math.pow(1 + decor.value, level);
-  }, 1);
-}
-
-function decorationFlatPps(current = state) {
+function decorationBonus(effect, current = state) {
   return decorations.reduce((sum, decor) => {
-    if (decor.effect !== "flatPps") return sum;
-    return sum + decorationLevel(decor, current) * decor.value;
+    const level = decorationLevel(decor, current);
+    if (decor.effect !== effect) return sum;
+    return sum + decor.value * level;
   }, 0);
 }
 
-function globalMultiplier(current = state) {
-  return activeBraceletFocusMultiplier(current) *
-    beadArchiveMultiplier(current) *
-    (1 + uniqueCats(current) * BALANCE.uniqueCatBonus) *
-    (1 + totalPaws(current) * BALANCE.pawBonus) *
-    pawTalentMultiplier("allMult", current);
+function decorationMultiplier(effect, current = state) {
+  return 1 + decorationBonus(effect, current);
 }
 
-function tapPower(current = state) {
-  return (1 + Math.pow(BALANCE.braceletTapGrowth, current.braceletLevel - 1) * 0.45) *
-    globalMultiplier(current) *
-    decorationMultiplier("tapMult", current) *
-    pawTalentMultiplier("tapMult", current);
+function prestigeMultiplier(current = state) {
+  return (1 + totalPaws(current) * BALANCE.prestigePawBonus) * pawTalentMultiplier("allMult", current);
+}
+
+function getCatMilestoneMultiplier(owned) {
+  if (owned >= 50) return 8;
+  if (owned >= 25) return 5;
+  if (owned >= 10) return 3;
+  if (owned >= 5) return 2;
+  if (owned >= 3) return 1.5;
+  if (owned >= 2) return 1.2;
+  return 1;
+}
+
+function catZenRate(cat, current = state) {
+  const owned = current.catCounts[cat.id] ?? 0;
+  return cat.baseZenRate * owned * getCatMilestoneMultiplier(owned);
+}
+
+function catPatinaPower(cat, current = state) {
+  const owned = current.catCounts[cat.id] ?? 0;
+  return cat.basePatinaPower * owned * getCatMilestoneMultiplier(owned);
+}
+
+function totalCatZenRate(current = state) {
+  return allCats(current).reduce((sum, cat) => sum + catZenRate(cat, current), 0);
+}
+
+function totalCatPatinaPower(current = state) {
+  return Math.max(1, allCats(current).reduce((sum, cat) => sum + catPatinaPower(cat, current), 0));
+}
+
+function averageMood(current = state) {
+  const ownedCats = allCats(current).filter((cat) => (current.catCounts[cat.id] ?? 0) > 0);
+  if (!ownedCats.length) return 100;
+  return ownedCats.reduce((sum, cat) => sum + (current.catMood?.[cat.id] ?? 100), 0) / ownedCats.length;
+}
+
+function getMoodMultiplier(avgMood = averageMood()) {
+  if (avgMood >= 80) return 1.2;
+  if (avgMood >= 50) return 1;
+  if (avgMood >= 20) return 0.8;
+  return 0.6;
 }
 
 function productionPerSecond(current = state) {
-  const catBase = cats.reduce((sum, cat) => {
-    const count = current.catCounts[cat.id] ?? 0;
-    const duplicateBoost = Math.pow(1 + BALANCE.duplicateCatBonus, Math.max(0, count - 1));
-    return sum + count * cat.pps * duplicateBoost;
-  }, 0);
+  const catZenMultiplier = (1 + totalCatZenRate(current)) * decorationMultiplier("catZen", current) * pawTalentMultiplier("catMult", current);
+  return BALANCE.baseZenPerSecond *
+    catZenMultiplier *
+    braceletTotalMultiplier(current) *
+    getMoodMultiplier(averageMood(current)) *
+    prestigeMultiplier(current);
+}
 
-  return (catBase + decorationFlatPps(current)) *
-    Math.pow(BALANCE.braceletPassiveGrowth, Math.max(0, current.braceletLevel - 1)) *
-    globalMultiplier(current) *
-    decorationMultiplier("catMult", current) *
-    pawTalentMultiplier("catMult", current);
+function tapPower(current = state) {
+  return BALANCE.manualBaseGain *
+    braceletTotalMultiplier(current) *
+    getMoodMultiplier(averageMood(current)) *
+    prestigeMultiplier(current) *
+    decorationMultiplier("manual", current) *
+    pawTalentMultiplier("tapMult", current) *
+    Math.pow(BALANCE.handcraftGrowth, Math.max(0, current.braceletLevel - 1));
 }
 
 function catDisplayPps(cat, current = state) {
-  return cat.pps *
-    Math.pow(BALANCE.braceletPassiveGrowth, Math.max(0, current.braceletLevel - 1)) *
-    globalMultiplier(current) *
-    decorationMultiplier("catMult", current) *
-    pawTalentMultiplier("catMult", current);
+  return BALANCE.baseZenPerSecond *
+    catZenRate(cat, current) *
+    decorationMultiplier("catZen", current) *
+    braceletTotalMultiplier(current) *
+    getMoodMultiplier(averageMood(current)) *
+    prestigeMultiplier(current);
 }
 
 function catGroupPps(cat, current = state) {
-  const count = current.catCounts[cat.id] ?? 0;
-  const duplicateBoost = Math.pow(1 + BALANCE.duplicateCatBonus, Math.max(0, count - 1));
-  return count * catDisplayPps(cat, current) * duplicateBoost;
+  return catDisplayPps(cat, current);
 }
 
 function catGroupBonus(cat, current = state) {
   const count = current.catCounts[cat.id] ?? 0;
   if (count <= 0) return 0;
-  return count * Math.pow(1 + BALANCE.duplicateCatBonus, Math.max(0, count - 1));
+  return catPatinaPower(cat, current);
 }
 
 function pricingIncomePerSecond(current = state) {
@@ -747,17 +1076,17 @@ function pacedCost(weight, minimum, current = state) {
   return Math.max(minimum, pricingIncomePerSecond(current) * targetUpgradeSeconds(current) * weight);
 }
 
-function catCost(cat) {
-  const count = state.catCounts[cat.id] ?? 0;
-  return pacedCost(cat.paceWeight, cat.baseCost) * Math.pow(1.08, count);
+function catCost(cat, current = state) {
+  const count = current.catCounts[cat.id] ?? 0;
+  return Math.floor(cat.baseCost * Math.pow(cat.costGrowth, count));
 }
 
-function braceletCost() {
-  return pacedCost(0.78, 16) * Math.pow(1.035, Math.max(0, state.braceletLevel - 1));
+function braceletCost(current = state) {
+  return Math.floor(pacedCost(0.28, 80, current) * Math.pow(1.08, Math.max(0, current.braceletLevel - 1)));
 }
 
-function decorationCost(decor) {
-  return pacedCost(decor.paceWeight, decor.baseCost) * Math.pow(1.06, decorationLevel(decor));
+function decorationCost(decor, current = state) {
+  return Math.floor(decor.baseCost * Math.pow(decor.costGrowth, decorationLevel(decor, current)));
 }
 
 function formatDuration(seconds) {
@@ -774,6 +1103,66 @@ function waitLabel(cost) {
   return `约 ${formatDuration((cost - state.zen) / pps)}`;
 }
 
+function nextGoalText(current = state) {
+  const { bead, piece } = activeBracelet(current);
+  if (piece?.patina >= 1) return "下一步：这串已包浆，去珠阶添一串 0% 新串收益更高";
+
+  const addableBead = allBeads(current).find((item) => canAddBead(item, current));
+  if (addableBead) return `下一步：珠阶可添新串「${addableBead.name}」`;
+
+  const buyableCat = allCats(current).find((cat) => current.totalZen >= cat.unlock && current.zen >= catCost(cat, current));
+  if (buyableCat) return `下一步：猫缘可结缘「${buyableCat.name}」`;
+
+  const upgradableDecor = decorations.find((decor) => {
+    const level = decorationLevel(decor, current);
+    return current.totalZen >= decor.unlock && level < decor.maxLevel && current.zen >= decorationCost(decor, current);
+  });
+  if (upgradableDecor) return `下一步：装饰可升级「${upgradableDecor.name}」`;
+
+  const candidates = [
+    ...allBeads(current).filter((item) => current.totalZen >= item.threshold).map((item) => ({ label: `添新串「${item.name}」`, cost: beadPieceCost(item, current) })),
+    ...allCats(current).filter((cat) => current.totalZen >= cat.unlock).map((cat) => ({ label: `结缘「${cat.name}」`, cost: catCost(cat, current) })),
+    { label: "升级手法", cost: braceletCost(current) },
+  ].filter((item) => item.cost > current.zen);
+  candidates.sort((a, b) => a.cost - b.cost);
+  const next = candidates[0];
+  if (!next) return `当前主盘：${bead.name}，${getPatinaStageName(piece?.patina ?? 0)}`;
+  return `下一步：${next.label}，还差 ${formatNumber(next.cost - current.zen)} 禅意`;
+}
+
+function getOfflineGain(zenPerSecond, offlineSeconds) {
+  const fullRateSeconds = Math.min(offlineSeconds, BALANCE.offlineFullHours * 3600);
+  const reducedRateSeconds = Math.max(
+    0,
+    Math.min(offlineSeconds - fullRateSeconds, BALANCE.offlineReducedHours * 3600),
+  );
+  return zenPerSecond * fullRateSeconds + zenPerSecond * reducedRateSeconds * BALANCE.offlineReducedRate;
+}
+
+function careDecayMultiplier(effect, current = state) {
+  return Math.max(0.25, 1 - decorationBonus(effect, current));
+}
+
+function decayCatCare(seconds, current = state) {
+  if (!Number.isFinite(seconds) || seconds <= 0) return;
+  const moodLoss = BALANCE.moodDecayPerHour * (seconds / 3600) * careDecayMultiplier("moodCare", current);
+  const satietyLoss = BALANCE.satietyDecayPerHour * (seconds / 3600) * careDecayMultiplier("satietyCare", current);
+  allCats(current).forEach((cat) => {
+    if ((current.catCounts?.[cat.id] ?? 0) <= 0) return;
+    current.catMood[cat.id] = Math.max(0, (current.catMood?.[cat.id] ?? 100) - moodLoss);
+    current.catSatiety[cat.id] = Math.max(0, (current.catSatiety?.[cat.id] ?? 100) - satietyLoss);
+    if (current.catSatiety[cat.id] < 25) {
+      current.catMood[cat.id] = Math.max(0, current.catMood[cat.id] - moodLoss * 0.5);
+    }
+  });
+}
+
+function comfortCat(catId, current = state) {
+  if ((current.catCounts?.[catId] ?? 0) <= 0) return;
+  current.catMood[catId] = Math.min(100, (current.catMood?.[catId] ?? 80) + 8);
+  current.catSatiety[catId] = Math.min(100, (current.catSatiety?.[catId] ?? 80) + 5);
+}
+
 function gainZen(amount) {
   state.zen += amount;
   state.totalZen += amount;
@@ -785,18 +1174,42 @@ function spendZen(amount) {
   return true;
 }
 
+function getPatinaGainPerSecond(piece, bead, current = state) {
+  if (!piece || piece.patina >= 1) return 0;
+  return BALANCE.basePatinaRate *
+    totalCatPatinaPower(current) *
+    getMoodMultiplier(averageMood(current)) *
+    (isMainBracelet(piece, current) ? BALANCE.mainPatinaSpeed : 1) *
+    decorationMultiplier("patina", current) /
+    bead.patinaDifficulty;
+}
+
 function advanceActiveBraceletPatina(seconds, current = state, notify = true) {
   if (!Number.isFinite(seconds) || seconds <= 0) return false;
   const { bead, piece } = activeBracelet(current);
   if (!piece || piece.patina >= 1) return false;
   const previous = piece.patina;
-  const handcraftBonus = 1 + Math.max(0, (current.braceletLevel ?? 1) - 1) * 0.018;
-  piece.patina = Math.min(1, previous + (seconds * handcraftBonus) / BALANCE.patinaSeconds);
+  piece.patina = Math.min(1, previous + seconds * getPatinaGainPerSecond(piece, bead, current));
   const completed = previous < 1 && piece.patina >= 1;
   if (completed && notify) {
+    piece.completedAt = Date.now();
     toast("已包浆，换一个盘玩更好哦");
   }
   return completed;
+}
+
+function advanceActiveBraceletPatinaManual(steps, current = state) {
+  if (!Number.isFinite(steps) || steps <= 0) return 0;
+  const { bead, piece } = activeBracelet(current);
+  if (!piece || piece.patina >= 1) return 0;
+  const previous = piece.patina;
+  piece.patina = Math.min(1, previous + steps * BALANCE.manualPatinaGain / bead.patinaDifficulty);
+  const completed = previous < 1 && piece.patina >= 1;
+  if (completed) {
+    piece.completedAt = Date.now();
+    toast("已包浆，换一个盘玩更好哦");
+  }
+  return piece.patina - previous;
 }
 
 function advanceUpgradePace() {
@@ -821,17 +1234,20 @@ function setBraceletRotation(angle) {
   elements.altarBracelet.style.setProperty("--bracelet-rotation", `${braceletRotation}deg`);
 }
 
-function grantPolish(steps, event) {
+function grantPolish(steps, event, patinaGain = 0) {
   if (steps <= 0) return;
   const amount = tapPower() * steps;
   gainZen(amount);
-  advanceActiveBraceletPatina(steps * BALANCE.polishPatinaBoost);
   state.taps += steps;
-  popText(event, `+${formatNumber(amount)}`);
+  const patinaText = patinaGain > 0 ? ` · 包浆 +${(patinaGain * 100).toFixed(2)}%` : "";
+  popText(event, `+${formatNumber(amount)}${patinaText}`);
   elements.tapTarget.classList.remove("pulse");
   void elements.tapTarget.offsetWidth;
   elements.tapTarget.classList.add("pulse");
+  saveTimer = 0;
+  saveState();
   renderHud();
+  if (panelsReady) updatePanelState();
 }
 
 function startPolishing(event) {
@@ -842,6 +1258,7 @@ function startPolishing(event) {
   polishingState.lastAngle = pointerAngle(event);
   polishingState.progressDegrees = 0;
   polishingState.moved = false;
+  polishingState.patinaChanged = false;
   elements.tapTarget.classList.add("polishing");
   elements.tapTarget.setPointerCapture?.(event.pointerId);
 }
@@ -855,12 +1272,18 @@ function rotatePolishing(event) {
   if (Math.abs(delta) < 0.25) return;
 
   polishingState.moved = true;
+  const degrees = Math.abs(delta);
+  const patinaGain = advanceActiveBraceletPatinaManual(degrees / POLISH_STEP_DEGREES);
+  if (patinaGain > 0) polishingState.patinaChanged = true;
   setBraceletRotation(braceletRotation + delta);
-  polishingState.progressDegrees += Math.abs(delta);
+  polishingState.progressDegrees += degrees;
   const steps = Math.floor(polishingState.progressDegrees / POLISH_STEP_DEGREES);
   if (steps > 0) {
     polishingState.progressDegrees -= steps * POLISH_STEP_DEGREES;
-    grantPolish(steps, event);
+    grantPolish(steps, event, patinaGain);
+  } else if (patinaGain > 0) {
+    renderHud();
+    if (panelsReady) updatePanelState();
   }
 }
 
@@ -870,6 +1293,12 @@ function stopPolishing(event) {
   polishingState.pointerId = null;
   elements.tapTarget.classList.remove("polishing");
   elements.tapTarget.releasePointerCapture?.(event.pointerId);
+  if (polishingState.moved || polishingState.patinaChanged) {
+    saveTimer = 0;
+    saveState();
+    renderHud();
+    if (panelsReady) updatePanelState();
+  }
 }
 
 function showPolishHint() {
@@ -893,12 +1322,14 @@ function popText(event, text) {
 }
 
 function buyCat(catId) {
-  const cat = cats.find((item) => item.id === catId);
+  const cat = allCats().find((item) => item.id === catId);
   if (!cat || state.totalZen < cat.unlock) return;
   const previousCount = state.catCounts[cat.id] ?? 0;
   const cost = catCost(cat);
   if (!spendZen(cost)) return;
   state.catCounts[cat.id] = previousCount + 1;
+  state.catMood[cat.id] = Math.min(100, (state.catMood?.[cat.id] ?? 90) + 10);
+  state.catSatiety[cat.id] = Math.min(100, (state.catSatiety?.[cat.id] ?? 90) + 10);
   advanceUpgradePace();
   toast(`新的${cat.name}加入了盘珠铺`);
   render();
@@ -915,25 +1346,252 @@ function upgradeBracelet() {
 }
 
 function selectBead(beadId) {
-  const bead = beads.find((item) => item.id === beadId);
+  const bead = allBeads().find((item) => item.id === beadId);
   if (!bead || state.totalZen < bead.threshold || !beadCollection(bead.id).length) return;
+  const collection = beadCollection(bead.id);
+  const piece = [...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1);
+  if (!piece) return;
   state.selectedBead = bead.id;
-  const { piece } = activeBracelet();
+  state.mainBraceletId = piece.id;
+  ensureMainBracelet(state);
   toast(`开始盘玩${bead.name}${variantName(bead.id, piece.variant)}`);
   render();
 }
 
 function addBead(beadId) {
-  const bead = beads.find((item) => item.id === beadId);
+  const bead = allBeads().find((item) => item.id === beadId);
   if (!bead || state.totalZen < bead.threshold) return;
   const cost = beadPieceCost(bead);
   if (!spendZen(cost)) return;
   const variant = variantForNewBead(bead.id);
-  beadCollection(bead.id).push(makeBeadPiece(bead.id, variant, 0));
+  const piece = makeBeadPiece(bead.id, variant, 0);
+  beadCollection(bead.id).push(piece);
   state.selectedBead = bead.id;
+  state.mainBraceletId = piece.id;
+  ensureMainBracelet(state);
   advanceUpgradePace();
   toast(`添了一串${bead.name}${variantName(bead.id, variant)}，开始养包浆`);
   render();
+}
+
+function aiFormElements(kind) {
+  return kind === "cat"
+    ? {
+      form: elements.catAiForm,
+      name: elements.catAiName,
+      note: elements.catAiNote,
+      model: elements.catAiModel,
+      customModel: elements.catAiCustomModel,
+      apiKey: elements.catAiApiKey,
+      photo: elements.catAiPhoto,
+      button: elements.catAiButton,
+      status: elements.catAiStatus,
+    }
+    : {
+      form: elements.beadAiForm,
+      name: elements.beadAiName,
+      note: elements.beadAiNote,
+      model: elements.beadAiModel,
+      customModel: elements.beadAiCustomModel,
+      apiKey: elements.beadAiApiKey,
+      photo: elements.beadAiPhoto,
+      button: elements.beadAiButton,
+      status: elements.beadAiStatus,
+    };
+}
+
+function syncAiModelInput(kind) {
+  const form = aiFormElements(kind);
+  const isCustom = form.model?.value === "custom";
+  if (!form.customModel) return;
+  form.customModel.disabled = !isCustom;
+  form.customModel.required = isCustom;
+  if (!isCustom) form.customModel.value = "";
+}
+
+function selectedAiModel(kind) {
+  const form = aiFormElements(kind);
+  if (form.model?.value === "custom") return form.customModel?.value.trim() || "";
+  return form.model?.value || "local-pixel";
+}
+
+function setAiStatus(kind, message, isError = false) {
+  const { status } = aiFormElements(kind);
+  if (!status) return;
+  status.textContent = message;
+  status.style.color = isError ? "#9d2f22" : "#684421";
+}
+
+function formatFileSize(bytes) {
+  if (!Number.isFinite(bytes) || bytes <= 0) return "0 KB";
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  const value = bytes / (1024 * 1024);
+  return `${value.toFixed(value < 10 ? 1 : 0)} MB`;
+}
+
+function syncAiPhotoUploadStatus(kind) {
+  const form = aiFormElements(kind);
+  const file = form.photo?.files?.[0];
+  const label = kind === "cat" ? "猫照" : "手串照";
+  if (!file) {
+    setAiStatus(kind, `还没有上传${label}。`);
+    return;
+  }
+  if (!file.type.startsWith("image/")) {
+    setAiStatus(kind, "请上传 PNG、JPG 或 WebP 图片。", true);
+    return;
+  }
+  if (file.size > 12 * 1024 * 1024) {
+    setAiStatus(kind, "图片太大了，请压到 12MB 以内。", true);
+    return;
+  }
+  setAiStatus(kind, `已上传${label}：${file.name}（${formatFileSize(file.size)}），可以开始生成。`);
+}
+
+function aiDesignErrorMessage(error) {
+  const message = error?.message || "生成失败";
+  if (error?.localServiceUnavailable || message === "LOCAL_AI_SERVICE_UNREACHABLE") {
+    return "无法连接本地 AI 服务。请先在项目目录运行 npm run dev:ai，然后用 http://localhost:8080 打开页面。";
+  }
+  return `${message}。请确认已用本地 AI 服务打开页面，并配置对应模型的 API Key。`;
+}
+
+function aiDesignEndpoint() {
+  const host = window.location.hostname;
+  const servedByLocalAi = (host === "localhost" || host === "127.0.0.1") && window.location.port === "8080";
+  return servedByLocalAi ? "/api/ai-design" : "http://localhost:8080/api/ai-design";
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result ?? "")));
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("图片读取失败")));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function submitAiDesign(kind, event) {
+  event.preventDefault();
+  const form = aiFormElements(kind);
+  const name = form.name.value.trim();
+  const note = form.note.value.trim();
+  const model = selectedAiModel(kind);
+  const apiKey = form.apiKey?.value.trim() || "";
+  const file = form.photo.files?.[0];
+  if (!name || !file) {
+    setAiStatus(kind, "请先填写名字并上传照片。", true);
+    return;
+  }
+  if (!file.type.startsWith("image/")) {
+    setAiStatus(kind, "请上传 PNG、JPG 或 WebP 图片。", true);
+    return;
+  }
+  if (file.size > 12 * 1024 * 1024) {
+    setAiStatus(kind, "图片太大了，请压到 12MB 以内。", true);
+    return;
+  }
+  if (!model) {
+    setAiStatus(kind, "请填写自定义模型名，或选择一个内置模型。", true);
+    return;
+  }
+
+  form.button.disabled = true;
+  const modelLabel = model.replace(/^(openai|qwen|doubao):/, "");
+  setAiStatus(kind, model === "local-pixel" ? "正在用免费本地模型生成..." : `AI 正在使用 ${modelLabel} 设计像素形象，并附带现有素材作风格参考...`);
+  try {
+    const imageDataUrl = await readFileAsDataUrl(file);
+    let response;
+    try {
+      response = await fetch(aiDesignEndpoint(), {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kind,
+          name,
+          note,
+          model,
+          apiKey,
+          imageDataUrl,
+          imageName: file.name,
+          mimeType: file.type,
+        }),
+      });
+    } catch (networkError) {
+      const localError = new Error("LOCAL_AI_SERVICE_UNREACHABLE");
+      localError.localServiceUnavailable = true;
+      localError.cause = networkError;
+      throw localError;
+    }
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || "AI 服务暂时不可用");
+    if (!result.assetPath) throw new Error("AI 服务没有返回图片");
+
+    if (kind === "cat") {
+      addAiCatDesign(name, note, result.assetPath);
+    } else {
+      addAiBeadDesign(name, note, result.assetPath);
+    }
+    form.form.reset();
+    setAiStatus(kind, "生成完成，已经加入存档。");
+  } catch (error) {
+    setAiStatus(kind, aiDesignErrorMessage(error), true);
+  } finally {
+    form.button.disabled = false;
+  }
+}
+
+function addAiCatDesign(name, note, imageUrl) {
+  const id = slugifyId(name, "cat");
+  const cat = {
+    id,
+    name,
+    sprite: "custom-cat",
+    imageUrl,
+    baseCost: 900,
+    costGrowth: 1.18,
+    baseZenRate: 1.2,
+    basePatinaPower: 2,
+    effect: note ? `AI形象：${note.slice(0, 22)}` : "AI专属猫息",
+    unlock: 0,
+    custom: true,
+  };
+  state.customCats = normalizeCustomCats([...(state.customCats ?? []), cat]);
+  state.catCounts[id] = 1;
+  state.catMood[id] = 100;
+  state.catSatiety[id] = 100;
+  saveState();
+  render();
+  toast(`${name}加入了盘珠铺`);
+}
+
+function addAiBeadDesign(name, note, imageUrl) {
+  const id = slugifyId(name, "bead");
+  const bead = {
+    id,
+    name,
+    sprite: "custom-bead",
+    imageUrl,
+    threshold: 0,
+    unlockCost: 0,
+    baseCost: 1200,
+    costGrowth: 1.2,
+    baseBonus: 0.12,
+    patinaDifficulty: 4,
+    note: note || "AI设计新串",
+    custom: true,
+  };
+  state.customBeads = normalizeCustomBeads([...(state.customBeads ?? []), bead]);
+  ensureBeadCollections(state);
+  const piece = makeBeadPiece(id, "default", 0);
+  piece.imageUrl = imageUrl;
+  state.beadCollections[id] = [piece];
+  state.selectedBead = id;
+  state.mainBraceletId = piece.id;
+  ensureMainBracelet(state);
+  saveState();
+  render();
+  toast(`新串「${name}」开始养包浆`);
 }
 
 function upgradeDecoration(decorId) {
@@ -969,6 +1627,31 @@ function upgradePawTalent(talentId) {
   state.paws -= cost;
   state.pawTalentLevels[talent.id] = level + 1;
   toast(`${talent.name} 升到 Lv.${level + 1}`);
+  render();
+}
+
+function prestigeForPaws() {
+  const reward = availablePrestigePaws();
+  if (reward <= 0) {
+    toast("福爪还在酝酿，继续积累禅意");
+    return;
+  }
+  if (!confirm(`领悟 ${reward} 枚福爪并重新开铺？会重置当前禅意、普通手串、猫群和装饰，但保留福爪与图鉴成长。`)) return;
+  const keepTotalZen = state.totalZen;
+  const keepPaws = state.paws + reward;
+  const keepClaimedWishes = { ...state.claimedWishes };
+  const keepTalents = { ...state.pawTalentLevels };
+  const keepTutorial = state.tutorialSeen;
+  const keepBgm = state.bgmEnabled;
+  state = defaultState();
+  state.totalZen = keepTotalZen;
+  state.paws = keepPaws;
+  state.claimedWishes = keepClaimedWishes;
+  state.pawTalentLevels = keepTalents;
+  state.tutorialSeen = keepTutorial;
+  state.bgmEnabled = keepBgm;
+  saveState();
+  toast(`福爪 +${reward}，新的盘珠日记开始了`);
   render();
 }
 
@@ -1047,7 +1730,7 @@ function prevGuideStep() {
 }
 
 function renderCats() {
-  elements.catLayer.innerHTML = cats
+  elements.catLayer.innerHTML = allCats()
     .flatMap((cat, catIndex) => {
       const count = state.catCounts[cat.id] ?? 0;
       const visibleCount = visibleCatCount(count);
@@ -1055,6 +1738,7 @@ function renderCats() {
         const visual = ensureCatVisual(cat, catIndex, instanceIndex);
         const isMain = instanceIndex === 0;
         const groupLabel = count > visibleCount ? `Lv.${count} · 显示${visibleCount}/${count}` : `Lv.${count}`;
+        const imageStyle = cat.imageUrl ? ` --cat-image:url('${escapeHtml(cat.imageUrl)}');` : "";
         return `
           <span
             class="cat-action-sprite ${cat.sprite} action-${visual.spriteAction} activity-${visual.activity} stage-cat show ${isMain ? "main-cat" : "clone-cat"}"
@@ -1065,9 +1749,10 @@ function renderCats() {
             data-zone="${visual.zoneId}"
             role="button"
             tabindex="0"
-            aria-label="查看${cat.name}群"
-            style="--cat-left:${visual.x}%; --cat-bottom:${visual.bottom}%; --cat-scale:${visual.scale}; --cat-z:${visual.z}; --cat-delay:${visual.delay}ms; --cat-face:${visual.face};"
+            aria-label="查看${escapeHtml(cat.name)}群"
+            style="--cat-left:${visual.x}%; --cat-bottom:${visual.bottom}%; --cat-z:${visual.z}; --cat-delay:${visual.delay}ms; --cat-face:${visual.face};${imageStyle}"
           >
+            <i class="cat-art" aria-hidden="true"></i>
             ${isMain ? `<b class="cat-group-chip">${groupLabel}</b>` : ""}
           </span>
         `;
@@ -1119,7 +1804,6 @@ function ensureCatVisual(cat, catIndex, instanceIndex) {
       minX: placement ? Math.max(2, placedX - 10) : zone.minX,
       maxX: placement ? Math.min(92, placedX + 10) : zone.maxX,
       bottom: placedBottom,
-      scale: zone.scale,
       face: instanceIndex % 2 === 0 ? 1 : -1,
       z: zone.z + instanceIndex,
       delay: -((catIndex * 360 + instanceIndex * 520) % 1800),
@@ -1131,8 +1815,9 @@ function ensureCatVisual(cat, catIndex, instanceIndex) {
 
 function setCatAction(catId, instanceIndex, nextActivity) {
   if ((state.catCounts[catId] ?? 0) <= 0) return;
-  const cat = cats.find((item) => item.id === catId);
-  const catIndex = cats.findIndex((item) => item.id === catId);
+  const catList = allCats();
+  const cat = catList.find((item) => item.id === catId);
+  const catIndex = catList.findIndex((item) => item.id === catId);
   if (!cat || catIndex < 0) return;
 
   const visual = ensureCatVisual(cat, catIndex, instanceIndex);
@@ -1201,9 +1886,20 @@ function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value));
 }
 
+function stageElementDragLimits(element, layerRect) {
+  const rect = element.getBoundingClientRect();
+  const layerWidth = Math.max(1, layerRect.width);
+  const layerHeight = Math.max(1, layerRect.height);
+  return {
+    x: Math.max(0, 100 - (rect.width / layerWidth) * 100),
+    bottom: Math.max(0, 100 - (rect.height / layerHeight) * 100),
+  };
+}
+
 function beginCatDrag(event) {
   const stageCat = event.target.closest("[data-stage-cat]");
   if (!stageCat || (event.button !== undefined && event.button !== 0)) return;
+  event.preventDefault();
   const layerRect = elements.catLayer.getBoundingClientRect();
   const catRect = stageCat.getBoundingClientRect();
   const instanceIndex = Number(stageCat.dataset.catInstance ?? 0);
@@ -1220,7 +1916,6 @@ function beginCatDrag(event) {
   catDragState.moved = false;
 
   stageCat.classList.add("dragging-cat");
-  stageCat.setPointerCapture?.(event.pointerId);
 }
 
 function moveCatDrag(event) {
@@ -1231,18 +1926,19 @@ function moveCatDrag(event) {
 
   event.preventDefault();
   const layerRect = elements.catLayer.getBoundingClientRect();
+  const limits = stageElementDragLimits(catDragState.element, layerRect);
   const leftPx = event.clientX - layerRect.left - catDragState.offsetX;
   const bottomPx = layerRect.bottom - event.clientY - catDragState.offsetBottom;
-  const x = clamp((leftPx / layerRect.width) * 100, 0, 92);
-  const bottom = clamp((bottomPx / layerRect.height) * 100, 0, 48);
+  const x = clamp((leftPx / Math.max(1, layerRect.width)) * 100, 0, limits.x);
+  const bottom = clamp((bottomPx / Math.max(1, layerRect.height)) * 100, 0, limits.bottom);
   const visual = catVisualState.get(catDragState.key);
   if (!visual) return;
 
   visual.x = x;
   visual.bottom = bottom;
   visual.targetX = x;
-  visual.minX = clamp(x - 10, 0, 92);
-  visual.maxX = clamp(x + 10, 0, 92);
+  visual.minX = clamp(x - 10, 0, limits.x);
+  visual.maxX = clamp(x + 10, 0, limits.x);
   visual.face = visual.face || 1;
 
   catDragState.element.style.setProperty("--cat-left", `${visual.x}%`);
@@ -1254,7 +1950,6 @@ function finishCatDrag(event) {
   const stageCat = catDragState.element;
   const visual = catVisualState.get(catDragState.key);
   stageCat?.classList.remove("dragging-cat");
-  stageCat?.releasePointerCapture?.(event.pointerId);
 
   if (catDragState.moved && visual) {
     state.catPlacements[catDragState.key] = {
@@ -1269,6 +1964,75 @@ function finishCatDrag(event) {
   catDragState.pointerId = null;
   catDragState.element = null;
   catDragState.key = "";
+}
+
+function setDecorPlacementStyle(element, x, bottom) {
+  element.style.left = `${x}%`;
+  element.style.bottom = `${bottom}%`;
+  element.style.right = "auto";
+  element.style.top = "auto";
+}
+
+function beginDecorDrag(event) {
+  const stageDecor = event.target.closest("[data-stage-decor]");
+  if (!stageDecor || !stageDecor.classList.contains("show") || (event.button !== undefined && event.button !== 0)) return;
+  event.preventDefault();
+
+  const layerRect = elements.decorLayer.getBoundingClientRect();
+  const decorRect = stageDecor.getBoundingClientRect();
+  const currentX = clamp(((decorRect.left - layerRect.left) / Math.max(1, layerRect.width)) * 100, 0, 100);
+  const currentBottom = clamp(((layerRect.bottom - decorRect.bottom) / Math.max(1, layerRect.height)) * 100, 0, 100);
+  setDecorPlacementStyle(stageDecor, currentX, currentBottom);
+
+  decorDragState.active = true;
+  decorDragState.pointerId = event.pointerId;
+  decorDragState.element = stageDecor;
+  decorDragState.decorId = stageDecor.dataset.decor;
+  decorDragState.startX = event.clientX;
+  decorDragState.startY = event.clientY;
+  decorDragState.offsetX = event.clientX - decorRect.left;
+  decorDragState.offsetBottom = decorRect.bottom - event.clientY;
+  decorDragState.moved = false;
+
+  stageDecor.classList.add("dragging-decor");
+  elements.decorLayer.classList.add("dragging-decor-layer");
+}
+
+function moveDecorDrag(event) {
+  if (!decorDragState.active || decorDragState.pointerId !== event.pointerId || !decorDragState.element) return;
+  const distance = Math.hypot(event.clientX - decorDragState.startX, event.clientY - decorDragState.startY);
+  if (distance > 4) decorDragState.moved = true;
+  if (!decorDragState.moved) return;
+
+  event.preventDefault();
+  const layerRect = elements.decorLayer.getBoundingClientRect();
+  const limits = stageElementDragLimits(decorDragState.element, layerRect);
+  const leftPx = event.clientX - layerRect.left - decorDragState.offsetX;
+  const bottomPx = layerRect.bottom - event.clientY - decorDragState.offsetBottom;
+  const x = clamp((leftPx / Math.max(1, layerRect.width)) * 100, 0, limits.x);
+  const bottom = clamp((bottomPx / Math.max(1, layerRect.height)) * 100, 0, limits.bottom);
+
+  setDecorPlacementStyle(decorDragState.element, x, bottom);
+}
+
+function finishDecorDrag(event) {
+  if (!decorDragState.active || decorDragState.pointerId !== event.pointerId) return;
+  const stageDecor = decorDragState.element;
+  stageDecor?.classList.remove("dragging-decor");
+  elements.decorLayer.classList.remove("dragging-decor-layer");
+
+  if (decorDragState.moved && stageDecor && decorDragState.decorId) {
+    state.decorationPlacements[decorDragState.decorId] = {
+      x: Number(parseFloat(stageDecor.style.left).toFixed(2)),
+      bottom: Number(parseFloat(stageDecor.style.bottom).toFixed(2)),
+    };
+    saveState();
+  }
+
+  decorDragState.active = false;
+  decorDragState.pointerId = null;
+  decorDragState.element = null;
+  decorDragState.decorId = "";
 }
 
 function nextCatAction(catId, instanceIndex, mode = "random") {
@@ -1287,7 +2051,7 @@ function changeCatAction(catId, mode = "random", instanceIndex = 0) {
 }
 
 function updateCatActions() {
-  const visibleInstances = cats.flatMap((cat) => {
+  const visibleInstances = allCats().flatMap((cat) => {
     const count = visibleCatCount(state.catCounts[cat.id] ?? 0);
     return Array.from({ length: count }, (_, instanceIndex) => ({ cat, instanceIndex }));
   });
@@ -1297,7 +2061,7 @@ function updateCatActions() {
 }
 
 function openCatGroupPanel(catId) {
-  const cat = cats.find((item) => item.id === catId);
+  const cat = allCats().find((item) => item.id === catId);
   if (!cat) return;
   const count = state.catCounts[cat.id] ?? 0;
   const visibleCount = visibleCatCount(count);
@@ -1306,8 +2070,8 @@ function openCatGroupPanel(catId) {
   elements.catGroupTitle.textContent = `${cat.name}群 Lv.${count}`;
   elements.catGroupCount.textContent = `当前数量：${count}`;
   elements.catGroupVisible.textContent = `场景显示：${visibleCount}${count > visibleCount ? ` / 实际 ${count}` : ""}`;
-  elements.catGroupBonus.textContent = `总包浆加成：x${catGroupBonus(cat).toFixed(2)}，猫息 ${formatNumber(catGroupPps(cat))}/s`;
-  elements.catGroupStatus.textContent = `状态：${mainVisual?.mood ?? "开心"}`;
+  elements.catGroupBonus.textContent = `猫息 ${formatNumber(catGroupPps(cat))}/s，包浆力 x${catGroupBonus(cat).toFixed(1)}`;
+  elements.catGroupStatus.textContent = `状态：${mainVisual?.mood ?? "开心"} · 心情 ${Math.floor(state.catMood?.[cat.id] ?? 100)} · 饱食 ${Math.floor(state.catSatiety?.[cat.id] ?? 100)}`;
   elements.catGroupPanel.hidden = false;
 }
 
@@ -1337,13 +2101,17 @@ function renderDecorLayer() {
   elements.decorLayer.innerHTML = decorations
     .map((decor) => {
       const level = decorationLevel(decor);
-      return `<span class="decor-sprite ${decor.sprite} stage-decor ${level > 0 ? "show" : ""}" data-decor="${decor.id}"></span>`;
+      const placement = state.decorationPlacements?.[decor.id];
+      const placementStyle = Number.isFinite(placement?.x) && Number.isFinite(placement?.bottom)
+        ? ` style="left:${placement.x}%; bottom:${placement.bottom}%; right:auto; top:auto;"`
+        : "";
+      return `<span class="decor-sprite ${decor.sprite} stage-decor ${level > 0 ? "show" : ""}" data-stage-decor data-decor="${decor.id}"${placementStyle}></span>`;
     })
     .join("");
 }
 
 function renderShop() {
-  elements.catShop.innerHTML = cats
+  elements.catShop.innerHTML = allCats()
     .map((cat) => {
       const count = state.catCounts[cat.id] ?? 0;
       const unlocked = state.totalZen >= cat.unlock;
@@ -1351,14 +2119,15 @@ function renderShop() {
       const canBuy = unlocked && state.zen >= cost;
       return `
         <article class="shop-card ${unlocked ? "" : "locked"} ${canBuy ? "has-upgrade" : ""}" data-cat-card="${cat.id}">
-          <span class="sprite ${cat.sprite}" aria-hidden="true"></span>
+          <span class="sprite ${cat.sprite}"${spriteInlineStyle(cat.imageUrl)} aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
-              <span>${cat.name}</span>
-              <span data-cat-count="${cat.id}">Lv.${count}</span>
+              <span>${escapeHtml(cat.name)}</span>
+              <span data-cat-count="${cat.id}">数量 ${count}</span>
             </div>
             <div class="card-meta">
-              <span data-cat-pps="${cat.id}">${formatNumber(catGroupPps(cat))}/s 猫群猫息</span>
+              <span data-cat-pps="${cat.id}">${formatNumber(catGroupPps(cat))}/s 猫息 · 包浆力 x${catPatinaPower(cat).toFixed(1)}</span>
+              <span>${escapeHtml(cat.effect)}</span>
               <span data-cat-cost="${cat.id}">${unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(cat.unlock)} 解锁`}</span>
             </div>
             <button class="shop-button ${canBuy ? "has-upgrade" : ""}" type="button" data-buy-cat="${cat.id}" ${canBuy ? "" : "disabled"}>
@@ -1372,7 +2141,7 @@ function renderShop() {
 }
 
 function renderBeads() {
-  elements.beadBoard.innerHTML = beads
+  elements.beadBoard.innerHTML = allBeads()
     .map((bead) => {
       const unlocked = state.totalZen >= bead.threshold;
       const active = activeBead().id === bead.id;
@@ -1380,7 +2149,7 @@ function renderBeads() {
       const piece = active ? activeBracelet().piece : ([...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1));
       const count = collection.length;
       const completed = beadCompletedCount(bead.id);
-      const patina = Math.floor((piece?.patina ?? 0) * 100);
+      const patina = patinaPercentValue(piece);
       const cost = beadPieceCost(bead);
       const canAdd = canAddBead(bead);
       const imagePiece = piece ?? { variant: bead.id === "bodhi-root" ? "pure" : "default", patina: 0 };
@@ -1389,12 +2158,12 @@ function renderBeads() {
           <span class="bracelet-sprite ${bead.sprite}" style="${braceletImageStyle(bead, imagePiece)}" aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
-              <span>${bead.name}</span>
+              <span>${escapeHtml(bead.name)}</span>
               <span data-bead-count="${bead.id}">持有 ${count}</span>
             </div>
             <div class="card-meta">
-              <span data-bead-state="${bead.id}">${unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`}</span>
-              <span data-bead-label="${bead.id}">${braceletPatinaLabel(bead, piece, active)}</span>
+              <span data-bead-state="${bead.id}">${unlocked ? `正在 ${Math.max(0, count - completed)} · 已包浆 ${completed}` : `累计 ${formatNumber(bead.threshold)} 解锁`}</span>
+              <span data-bead-label="${bead.id}">${escapeHtml(braceletPatinaLabel(bead, piece, active))}</span>
               <span data-bead-bonus="${bead.id}">${active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`}</span>
             </div>
             <div class="bead-progress" aria-hidden="true"><span data-bead-progress="${bead.id}" style="width:${patina}%"></span></div>
@@ -1500,8 +2269,10 @@ function renderWishes() {
         <span data-paw-summary>${state.paws} 可用 / ${totalPaws(state)} 累计</span>
       </div>
       <div class="card-meta">
-        <span>完成心愿获得福爪；福爪可升级永久加成，累计福爪也会提供少量全局收益。</span>
+        <span>累计禅意可领悟福爪；每枚福爪提供全局收益 +12%，也可升级永久加成。</span>
+        <span data-prestige-paws>当前可领悟 ${availablePrestigePaws()} 枚福爪</span>
       </div>
+      <button class="shop-button ${availablePrestigePaws() > 0 ? "has-upgrade" : "secondary"}" type="button" data-prestige-paws ${availablePrestigePaws() > 0 ? "" : "disabled"}>领悟福爪</button>
       <div class="paw-talent-grid">${talentCards}</div>
     </section>
     ${wishCards}
@@ -1509,22 +2280,23 @@ function renderWishes() {
 }
 
 function hasCatUpgrade(current = state) {
-  return cats.some((cat) => current.totalZen >= cat.unlock && current.zen >= catCost(cat));
+  return allCats(current).some((cat) => current.totalZen >= cat.unlock && current.zen >= catCost(cat, current));
 }
 
 function hasBeadUpgrade(current = state) {
-  return beads.some((bead) => current.totalZen >= bead.threshold && current.zen >= beadPieceCost(bead, current));
+  return allBeads(current).some((bead) => current.totalZen >= bead.threshold && current.zen >= beadPieceCost(bead, current));
 }
 
 function hasDecorUpgrade(current = state) {
   return decorations.some((decor) => {
     const level = decorationLevel(decor, current);
-    return current.totalZen >= decor.unlock && level < decor.maxLevel && current.zen >= decorationCost(decor);
+    return current.totalZen >= decor.unlock && level < decor.maxLevel && current.zen >= decorationCost(decor, current);
   });
 }
 
 function hasWishUpgrade(current = state) {
   return wishes.some((wish) => !current.claimedWishes[wish.id] && wish.value(current) >= wish.goal) ||
+    availablePrestigePaws(current) > 0 ||
     pawTalents.some((talent) => pawTalentLevel(talent, current) < talent.maxLevel && current.paws >= pawTalentCost(talent, current));
 }
 
@@ -1541,7 +2313,7 @@ function updateUpgradeBadges() {
 }
 
 function updatePanelState() {
-  cats.forEach((cat) => {
+  allCats().forEach((cat) => {
     const count = state.catCounts[cat.id] ?? 0;
     const unlocked = state.totalZen >= cat.unlock;
     const cost = catCost(cat);
@@ -1554,8 +2326,8 @@ function updatePanelState() {
 
     card?.classList.toggle("locked", !unlocked);
     card?.classList.toggle("has-upgrade", canBuy);
-    if (countLabel) countLabel.textContent = `Lv.${count}`;
-    if (ppsLabel) ppsLabel.textContent = `${formatNumber(catGroupPps(cat))}/s 猫群猫息`;
+    if (countLabel) countLabel.textContent = `数量 ${count}`;
+    if (ppsLabel) ppsLabel.textContent = `${formatNumber(catGroupPps(cat))}/s 猫息 · 包浆力 x${catPatinaPower(cat).toFixed(1)}`;
     if (costLabel) costLabel.textContent = unlocked ? `花费 ${formatNumber(cost)} 禅意` : `累计 ${formatNumber(cat.unlock)} 解锁`;
     if (button) {
       button.disabled = !canBuy;
@@ -1565,14 +2337,14 @@ function updatePanelState() {
   });
 
   const currentBeadId = activeBead().id;
-  beads.forEach((bead) => {
+  allBeads().forEach((bead) => {
     const unlocked = state.totalZen >= bead.threshold;
     const active = currentBeadId === bead.id;
     const collection = beadCollection(bead.id);
     const count = collection.length;
     const piece = active ? activeBracelet().piece : ([...collection].reverse().find((item) => item.patina < 1) ?? collection.at(-1));
     const completed = beadCompletedCount(bead.id);
-    const patina = Math.floor((piece?.patina ?? 0) * 100);
+    const patina = patinaPercentValue(piece);
     const cost = beadPieceCost(bead);
     const canAdd = canAddBead(bead);
     const card = elements.beadBoard.querySelector(`[data-bead-card="${bead.id}"]`);
@@ -1590,7 +2362,7 @@ function updatePanelState() {
     card?.classList.toggle("has-upgrade", canAdd);
     if (image && piece) image.style.setProperty("--bracelet-image", `url("${braceletAssetPath(bead, piece)}")`);
     if (countLabel) countLabel.textContent = `持有 ${count}`;
-    if (stateLabel) stateLabel.textContent = unlocked ? `${completed} 串满包浆` : `累计 ${formatNumber(bead.threshold)} 解锁`;
+    if (stateLabel) stateLabel.textContent = unlocked ? `正在 ${Math.max(0, count - completed)} · 已包浆 ${completed}` : `累计 ${formatNumber(bead.threshold)} 解锁`;
     if (beadLabel) beadLabel.textContent = braceletPatinaLabel(bead, piece, active);
     if (bonusLabel) bonusLabel.textContent = active ? `当前主加成 x${activeBraceletFocusMultiplier().toFixed(2)}` : `同类加成 x${beadTypeMultiplier(bead.id).toFixed(2)}`;
     if (progressBar) progressBar.style.width = `${patina}%`;
@@ -1674,6 +2446,15 @@ function updatePanelState() {
 
   const pawSummary = elements.wishList.querySelector("[data-paw-summary]");
   if (pawSummary) pawSummary.textContent = `${formatNumber(state.paws)} 可用 / ${formatNumber(totalPaws(state))} 累计`;
+  const prestigePaws = availablePrestigePaws();
+  const prestigeLabel = elements.wishList.querySelector("[data-prestige-paws]:not(button)");
+  const prestigeButton = elements.wishList.querySelector("button[data-prestige-paws]");
+  if (prestigeLabel) prestigeLabel.textContent = `当前可领悟 ${prestigePaws} 枚福爪`;
+  if (prestigeButton) {
+    prestigeButton.disabled = prestigePaws <= 0;
+    prestigeButton.classList.toggle("secondary", prestigePaws <= 0);
+    prestigeButton.classList.toggle("has-upgrade", prestigePaws > 0);
+  }
   updateUpgradeBadges();
 }
 
@@ -1684,24 +2465,29 @@ function renderHud() {
   const { bead: currentBead, piece: currentPiece } = activeBracelet();
   const patina = currentPiece?.patina ?? 0;
   const patinaComplete = patina >= 1;
+  const patinaSpeed = getPatinaGainPerSecond(currentPiece, currentBead);
+  const activeBonus = getBraceletContribution(currentBead, currentPiece);
 
   elements.zenValue.textContent = formatNumber(state.zen);
   elements.ppsValue.textContent = `${formatNumber(pps)}/s`;
   elements.tapValue.textContent = `+${formatNumber(tap)}`;
   elements.lifetimeValue.textContent = formatNumber(state.totalZen);
   elements.pawValue.textContent = `${formatNumber(state.paws)} / ${formatNumber(totalPaws(state))}`;
-  elements.catCountValue.textContent = `${totalCats(state)} / ${cats.length}`;
+  elements.catCountValue.textContent = `${totalCats(state)} 只 / ${uniqueCats(state)} 种`;
   elements.braceletName.textContent = currentBead.name;
-  elements.braceletLevel.textContent = `${variantName(currentBead.id, currentPiece?.variant)} · ${Math.floor(patina * 100)}%`;
-  elements.braceletStatus.textContent = patinaComplete ? "已包浆，换一个盘玩更好哦" : "放置中，会慢慢养包浆";
+  elements.braceletLevel.textContent = `${variantName(currentBead.id, currentPiece?.variant)} · ${formatPatinaPercent(currentPiece)}`;
+  elements.braceletStatus.textContent = patinaComplete
+    ? "已包浆，换一个盘玩更好哦"
+    : `${getPatinaStageName(patina)} · 当前加成 +${(activeBonus * 100).toFixed(1)}% · 预计 ${formatDuration((1 - patina) / Math.max(0.000001, patinaSpeed))}`;
   elements.braceletStatus.title = elements.braceletStatus.textContent;
   elements.braceletCost.textContent = `手法 ${formatNumber(nextBraceletCost)}`;
   elements.altarBracelet.className = `bracelet-sprite ${currentBead.sprite} altar-bracelet`;
   elements.altarBracelet.style.setProperty("--bracelet-image", `url("${braceletAssetPath(currentBead, currentPiece)}")`);
   elements.upgradeBraceletButton.disabled = state.zen < nextBraceletCost;
   elements.upgradeBraceletButton.classList.toggle("has-upgrade", state.zen >= nextBraceletCost);
-  elements.auraLabel.textContent = patinaComplete ? "已包浆" : `${Math.floor(patina * 100)}%`;
+  elements.auraLabel.textContent = patinaComplete ? "已包浆" : formatPatinaPercent(currentPiece);
   elements.auraFill.style.width = `${patina * 100}%`;
+  elements.nextGoalText.textContent = nextGoalText();
 }
 
 function render() {
@@ -1720,6 +2506,7 @@ function tick(now) {
   const delta = Math.min(0.25, (now - lastTick) / 1000);
   lastTick = now;
 
+  decayCatCare(delta);
   const pps = productionPerSecond();
   if (pps > 0) {
     gainZen(pps * delta);
@@ -1761,9 +2548,9 @@ function bindEvents() {
   document.addEventListener("keydown", startBgmAfterGesture, { once: true });
 
   elements.tapTarget.addEventListener("pointerdown", startPolishing);
-  elements.tapTarget.addEventListener("pointermove", rotatePolishing);
-  elements.tapTarget.addEventListener("pointerup", stopPolishing);
-  elements.tapTarget.addEventListener("pointercancel", stopPolishing);
+  document.addEventListener("pointermove", rotatePolishing);
+  document.addEventListener("pointerup", stopPolishing);
+  document.addEventListener("pointercancel", stopPolishing);
   elements.tapTarget.addEventListener("click", (event) => {
     if (polishingState.moved) {
       event.preventDefault();
@@ -1779,11 +2566,24 @@ function bindEvents() {
   elements.guideCloseButton.addEventListener("click", () => closeGuide(true));
   elements.guidePrevButton.addEventListener("click", prevGuideStep);
   elements.guideNextButton.addEventListener("click", nextGuideStep);
+  elements.catAiForm?.addEventListener("submit", (event) => submitAiDesign("cat", event));
+  elements.beadAiForm?.addEventListener("submit", (event) => submitAiDesign("bead", event));
+  elements.catAiModel?.addEventListener("change", () => syncAiModelInput("cat"));
+  elements.beadAiModel?.addEventListener("change", () => syncAiModelInput("bead"));
+  elements.catAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("cat"));
+  elements.beadAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("bead"));
   elements.catGroupCloseButton.addEventListener("click", closeCatGroupPanel);
+  elements.exportSaveButton.addEventListener("click", exportSave);
+  elements.importSaveButton.addEventListener("click", () => elements.importSaveInput.click());
+  elements.importSaveInput.addEventListener("change", () => importSaveFile(elements.importSaveInput.files?.[0]));
   elements.catLayer.addEventListener("pointerdown", beginCatDrag);
-  elements.catLayer.addEventListener("pointermove", moveCatDrag);
-  elements.catLayer.addEventListener("pointerup", finishCatDrag);
-  elements.catLayer.addEventListener("pointercancel", finishCatDrag);
+  elements.decorLayer.addEventListener("pointerdown", beginDecorDrag);
+  document.addEventListener("pointermove", moveCatDrag);
+  document.addEventListener("pointermove", moveDecorDrag);
+  document.addEventListener("pointerup", finishCatDrag);
+  document.addEventListener("pointerup", finishDecorDrag);
+  document.addEventListener("pointercancel", finishCatDrag);
+  document.addEventListener("pointercancel", finishDecorDrag);
 
   document.addEventListener("click", (event) => {
     const stageCat = event.target.closest("[data-stage-cat]");
@@ -1794,6 +2594,7 @@ function bindEvents() {
         return;
       }
       const instanceIndex = Number(stageCat.dataset.catInstance ?? 0);
+      comfortCat(stageCat.dataset.cat);
       changeCatAction(stageCat.dataset.cat, "cycle", instanceIndex);
       openCatGroupPanel(stageCat.dataset.cat);
       catActionTimer = 0;
@@ -1819,6 +2620,9 @@ function bindEvents() {
     const pawTalentButton = event.target.closest("[data-upgrade-paw-talent]");
     if (pawTalentButton) upgradePawTalent(pawTalentButton.dataset.upgradePawTalent);
 
+    const prestigeButton = event.target.closest("button[data-prestige-paws]");
+    if (prestigeButton) prestigeForPaws();
+
     const tabButton = event.target.closest("[data-tab]");
     if (tabButton) switchTab(tabButton.dataset.tab);
   });
@@ -1834,6 +2638,7 @@ function bindEvents() {
     if (!stageCat) return;
     event.preventDefault();
     const instanceIndex = Number(stageCat.dataset.catInstance ?? 0);
+    comfortCat(stageCat.dataset.cat);
     changeCatAction(stageCat.dataset.cat, "cycle", instanceIndex);
     openCatGroupPanel(stageCat.dataset.cat);
     catActionTimer = 0;
@@ -1868,6 +2673,8 @@ function switchTab(tab) {
 }
 
 bindEvents();
+syncAiModelInput("cat");
+syncAiModelInput("bead");
 render();
 syncBgmButton();
 saveState();
