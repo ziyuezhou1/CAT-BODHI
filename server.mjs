@@ -5,6 +5,7 @@ import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { networkInterfaces } from "node:os";
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 
@@ -129,6 +130,13 @@ function maskProxyUrl(value) {
 function nodeEnvProxyEnabled() {
   return process.execArgv.some((arg) => arg === "--use-env-proxy" || arg.startsWith("--use-env-proxy="))
     || process.env.NODE_USE_ENV_PROXY === "1";
+}
+
+function localNetworkUrls() {
+  return Object.values(networkInterfaces())
+    .flat()
+    .filter((item) => item && !item.internal && (item.family === "IPv4" || item.family === 4))
+    .map((item) => `http://${item.address}:${PORT}`);
 }
 
 function fetchFailureSummary(error) {
@@ -741,6 +749,11 @@ createServer((req, res) => {
   res.end("Method not allowed");
 }).listen(PORT, () => {
   console.log(`Cat Bodhi sprite server running at http://localhost:${PORT}`);
+  const lanUrls = localNetworkUrls();
+  if (lanUrls.length) {
+    console.log(`Phone/LAN URL: ${lanUrls.join("  ")}`);
+    console.log("On phone, open the LAN URL while on the same Wi-Fi; GitHub Pages cannot call this local model service directly.");
+  }
   console.log(`Sprite processor output: ${SPRITE_SEG_OUT_DIR}`);
   const proxy = configuredProxyEnv();
   if (proxy) {

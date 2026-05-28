@@ -1670,14 +1670,16 @@ async function copySpritePrompt(kind) {
 function spriteImportErrorMessage(error) {
   const message = error?.message || "生成失败";
   if (error?.localServiceUnavailable || message === "LOCAL_AI_SERVICE_UNREACHABLE") {
-    return "无法连接本地 sprite 处理服务。请先在项目目录运行 npm run dev:ai，然后用 http://localhost:8080 打开页面。";
+    if (window.location.port === "8080") {
+      return "无法连接本地 sprite 处理服务。请确认电脑上的 npm run dev:ai 仍在运行，手机和电脑在同一 Wi-Fi，且防火墙允许 Node.js 访问。";
+    }
+    return "无法连接本地 sprite 处理服务。电脑端可运行 npm run dev:ai 后打开 http://localhost:8080；手机端请打开服务启动日志里的 http://电脑局域网IP:8080，不要从 GitHub Pages 直接调用。";
   }
   return `${message}。请确认已用本地服务打开页面，并且 D:\\sprite_alpha_seg_pytorch 的模型环境可用。`;
 }
 
 function spriteImportEndpoint() {
-  const host = window.location.hostname;
-  const servedByLocalAi = (host === "localhost" || host === "127.0.0.1") && window.location.port === "8080";
+  const servedByLocalAi = /^https?:$/.test(window.location.protocol) && window.location.port === "8080";
   return servedByLocalAi ? "/api/sprite-import" : "http://localhost:8080/api/sprite-import";
 }
 
