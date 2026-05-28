@@ -26,7 +26,8 @@
 ### 2026-05-28
 
 - 重做 AI 形象工坊流程：游戏内复制稳定 sprite 生图提示词，玩家到千问、豆包、OpenAI、Gemini 等外部模型自行生成图片。
-- 上传外部生成的猫猫/文玩 sprite 后，本地服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型抠背景、裁切，并把处理后的 PNG 加入游戏存档。
+- 猫猫提示词要求生成纯绿色背景 `#04F90E` 的横向三动作 sprite sheet：坐姿、跳跃、趴卧，同一只参考猫不变形。
+- 上传外部生成的猫猫/文玩 sprite 后，本地服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型抠背景、裁切；猫猫会按三帧动作分别加入游戏存档。
 - 新增 `/api/sprite-import` 本地导入接口，以及 `tools/process_sprite_upload.py` 处理脚本。
 - 猫缘和珠阶面板移除 API Key 与模型选择输入，改成复制提示词、上传 sprite、取名入档的流程。
 - README 补充本地 sprite 处理模型路径配置。
@@ -101,7 +102,7 @@ python -m http.server 8080
 猫缘页和珠阶页现在使用“外部模型生成 + 本地抠图切割”的流程：
 
 1. 在游戏里点击“复制猫猫提示词”或“复制手串提示词”。
-2. 到自己的千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上现实猫照或文玩照片。
+2. 到自己的千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上现实猫照或文玩照片。猫猫请生成纯绿色背景的横向三动作 sprite sheet。
 3. 把外部模型生成的 sprite 图片上传回游戏，填写名字。
 4. 本地 Node 服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型，把结果写到 `D:\sprite_alpha_seg_pytorch\outputs\cat_match\<任务名>`，再复制处理后的 PNG 到 `assets/ai/cats` 或 `assets/ai/beads` 并加入存档。
 

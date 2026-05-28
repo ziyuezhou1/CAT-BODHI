@@ -7,6 +7,8 @@ import numpy as np
 from PIL import Image
 import torch
 
+CAT_ACTIONS = ("sit", "jump", "lie")
+
 
 def load_hybrid_tools(seg_root: Path):
     sys.path.insert(0, str(seg_root))
@@ -67,6 +69,33 @@ def crop_with_padding(rgba: np.ndarray, mask: np.ndarray, padding: int) -> Image
     return Image.fromarray(rgba[y0:y1, x0:x1], "RGBA")
 
 
+def connected_components(mask: np.ndarray, min_area: int) -> list[dict]:
+    count, labels, stats, _ = cv2.connectedComponentsWithStats((mask > 0).astype(np.uint8), connectivity=8)
+    components = []
+    for index in range(1, count):
+        x, y, w, h, area = stats[index]
+        if int(area) < min_area:
+            continue
+        components.append({
+            "index": index,
+            "bbox": (int(x), int(y), int(x + w), int(y + h)),
+            "area": int(area),
+            "mask": (labels == index).astype(np.uint8) * 255,
+        })
+    return components
+
+
+def ordered_sprite_components(mask: np.ndarray, min_area: int, limit: int | None) -> list[dict]:
+    components = connected_components(mask, min_area)
+    if not components:
+        return []
+    if limit:
+        components = sorted(components, key=lambda item: item["area"], reverse=True)[:limit]
+        if limit > 1:
+            return sorted(components, key=lambda item: item["bbox"][0])
+    return sorted(components, key=lambda item: (item["bbox"][1], item["bbox"][0]))
+
+
 def main():
     parser = argparse.ArgumentParser(description="Process one uploaded external sprite into a game-ready PNG.")
     parser.add_argument("--input", required=True)
@@ -94,8 +123,10 @@ def main():
     raw_alpha = rgba[:, :, 3]
 
     green_key = False
+    component_mask = None
     if has_useful_alpha(raw_alpha, args.min_area):
         final_mask = raw_alpha
+        component_mask = raw_alpha
         source = "input-alpha"
     else:
         bg_color = detect_background(rgb)
@@ -106,6 +137,7 @@ def main():
         Image.fromarray(hsv_mask).save(out_dir / "debug_chroma_hsv_mask.png")
 
         final_mask = hsv_mask if green_key else rgb_mask
+        component_mask = rgb_mask if green_key else final_mask
         source = f"background-rgb{bg_color}"
 
         if green_key and not args.no_unet:
@@ -130,12 +162,22 @@ def main():
     if green_key:
         final_rgba = tools["despill_green"](final_rgba, (4, 249, 14), 0.9)
 
-    crop = crop_with_padding(final_rgba, final_mask, args.padding)
-    result = tools["paste_on_fixed_canvas"](crop, args.canvas)
-    output = out_dir / "frame_001.png"
-    result.save(output, "PNG")
+    if component_mask is None:
+        component_mask = final_mask
+
+    frame_limit = len(CAT_ACTIONS) if args.kind == "cat" else 1
+    components = ordered_sprite_components(component_mask, args.min_area, frame_limit)
+    if not components:
+        components = [{"mask": final_mask}]
+
+    for index, component in enumerate(components, start=1):
+        crop = crop_with_padding(final_rgba, component["mask"], args.padding)
+        result = tools["paste_on_fixed_canvas"](crop, args.canvas)
+        output = out_dir / f"frame_{index:03d}.png"
+        result.save(output, "PNG")
+
     print(f"Processed {args.kind} sprite from {source}")
-    print(f"RESULT {output}")
+    print(f"Saved {len(components)} frame(s) to {out_dir}")
 
 
 if __name__ == "__main__":

@@ -44,6 +44,7 @@ const SPRITE_SEG_PYTHON = process.env.SPRITE_SEG_PYTHON || path.join(SPRITE_SEG_
 const SPRITE_SEG_CHECKPOINT = process.env.SPRITE_SEG_CHECKPOINT || path.join(SPRITE_SEG_ROOT, "checkpoints", "unet_sprite_ft.pt");
 const SPRITE_SEG_OUT_DIR = process.env.SPRITE_SEG_OUT_DIR || path.join(SPRITE_SEG_ROOT, "outputs", "cat_match");
 const SPRITE_UPLOAD_PROCESSOR = process.env.SPRITE_UPLOAD_PROCESSOR || path.join(ROOT, "tools", "process_sprite_upload.py");
+const CAT_ACTION_FRAME_NAMES = ["sit", "jump", "lie"];
 
 const DOUBAO_MODEL_ALIASES = new Map([
   ["doubao-seedream-4.5", "doubao-seedream-4-5-251128"],
@@ -317,11 +318,30 @@ async function processUploadedSprite({ kind, name, imageDataUrl, imageName, mime
   const folder = kind === "cat" ? "cats" : "beads";
   const dir = path.join(ROOT, "assets", "ai", folder);
   await mkdir(dir, { recursive: true });
+
+  if (kind === "cat") {
+    const actionImages = {};
+    for (const [index, action] of CAT_ACTION_FRAME_NAMES.entries()) {
+      const sourceFrame = frames[index] || frames[0];
+      const filename = `${jobId}-${action}.png`;
+      await copyFile(path.join(outDir, sourceFrame), path.join(dir, filename));
+      actionImages[action] = `assets/ai/${folder}/${filename}`;
+    }
+    return {
+      assetPath: actionImages.sit,
+      actionImages,
+      frameCount: frames.length,
+      processorOutput: outDir,
+      sourceName: imageName || "",
+    };
+  }
+
   const filename = `${jobId}.png`;
   await copyFile(path.join(outDir, frames[0]), path.join(dir, filename));
 
   return {
     assetPath: `assets/ai/${folder}/${filename}`,
+    frameCount: frames.length,
     processorOutput: outDir,
     sourceName: imageName || "",
   };
@@ -663,6 +683,8 @@ async function handleSpriteImport(req, res) {
       name,
       note,
       assetPath: processed.assetPath,
+      actionImages: processed.actionImages,
+      frameCount: processed.frameCount,
       processorOutput: processed.processorOutput,
       sourceName: processed.sourceName,
     });

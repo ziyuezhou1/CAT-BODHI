@@ -422,11 +422,13 @@ const elements = {
 const SPRITE_STYLE_PROMPTS = {
   cat: [
     "请参考我附上的现实猫咪照片，保留猫咪最有辨识度的毛色、脸部花纹、眼神印象、耳朵/尾巴轮廓和体型比例。",
-    "目标：生成一张可直接用于《猫猫盘珠日记》的单体猫咪 sprite。风格必须匹配当前游戏素材：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、少量暖金/青绿色点缀、边缘清晰、可爱但仍像参考照片里的猫。",
-    "构图：正方形画布，单只猫，全身，居中，3/4 视角，idle/sit 动作，四周留出安全边距，不要裁切耳朵和尾巴。",
-    "背景：优先透明背景；如果模型不能透明，请使用纯色抠图绿背景 #04F90E，背景必须平整无纹理、无阴影、无地面。",
+    "目标：生成一张可直接用于《猫猫盘珠日记》的三帧猫咪动作 sprite sheet，不是单体单动作。三帧必须都是同一只参考猫，只改变动作，不改变花色和体型。",
+    "动作与排列：横向一排 3 个独立 sprite，左边是 sit/idle 坐姿，中间是 jump/play 跳跃姿势，右边是 lie/rest 趴卧姿势。每帧之间留足纯绿色间隔，三只猫不要接触、不要重叠。",
+    "风格：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、少量暖金/青绿色点缀、边缘清晰、可爱但仍像参考照片里的猫。",
+    "构图：横向长方形画布或宽画布，全身，3/4 视角，每个动作四周留出安全边距，不要裁切耳朵和尾巴。",
+    "背景：必须使用纯绿色抠图背景 #04F90E，整张图背景必须是单一纯色、平整、无纹理、无阴影、无地面；不要透明背景。",
     "禁止：文字、签名、边框、UI、相框、复杂场景、玩具/衣服/道具遮挡猫、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
-    "输出：一张 PNG 风格图，主体清晰，适合后续抠背景和裁切成 128x128 游戏 sprite。",
+    "输出：一张 PNG 三动作 sprite sheet，主体清晰，适合后续按帧抠背景并裁切成 128x128 游戏 sprite。",
   ].join("\n"),
   bead: [
     "请参考我附上的现实文玩/手串照片，保留珠子的材质、颜色、纹理、孔道、绳结/隔珠关系，以及最有辨识度的包浆或花纹。",
@@ -464,20 +466,30 @@ function escapeHtml(value) {
 
 function normalizeCustomCats(items = []) {
   return (Array.isArray(items) ? items : [])
-    .filter((cat) => cat && cat.id && cat.imageUrl)
-    .map((cat) => ({
-      id: String(cat.id),
-      name: String(cat.name || "AI猫猫").slice(0, 18),
-      sprite: "custom-cat",
-      imageUrl: String(cat.imageUrl),
-      baseCost: Math.max(1, Number(cat.baseCost ?? 900)),
-      costGrowth: Math.max(1.01, Number(cat.costGrowth ?? 1.18)),
-      baseZenRate: Math.max(0.1, Number(cat.baseZenRate ?? 1.2)),
-      basePatinaPower: Math.max(0.5, Number(cat.basePatinaPower ?? 2)),
-      effect: String(cat.effect || "AI专属猫息"),
-      unlock: Math.max(0, Number(cat.unlock ?? 0)),
-      custom: true,
-    }));
+    .filter((cat) => cat && cat.id && (cat.imageUrl || cat.actionImages?.sit || cat.actionImages?.jump || cat.actionImages?.lie))
+    .map((cat) => {
+      const rawImages = cat.actionImages && typeof cat.actionImages === "object" ? cat.actionImages : {};
+      const imageUrl = String(cat.imageUrl || rawImages.sit || rawImages.jump || rawImages.lie || "");
+      const actionImages = {};
+      ["sit", "jump", "lie"].forEach((action) => {
+        const value = rawImages[action] || imageUrl;
+        if (value) actionImages[action] = String(value);
+      });
+      return {
+        id: String(cat.id),
+        name: String(cat.name || "AI猫猫").slice(0, 18),
+        sprite: "custom-cat",
+        imageUrl,
+        actionImages,
+        baseCost: Math.max(1, Number(cat.baseCost ?? 900)),
+        costGrowth: Math.max(1.01, Number(cat.costGrowth ?? 1.18)),
+        baseZenRate: Math.max(0.1, Number(cat.baseZenRate ?? 1.2)),
+        basePatinaPower: Math.max(0.5, Number(cat.basePatinaPower ?? 2)),
+        effect: String(cat.effect || "AI专属猫息"),
+        unlock: Math.max(0, Number(cat.unlock ?? 0)),
+        custom: true,
+      };
+    });
 }
 
 function normalizeCustomBeads(items = []) {
@@ -509,6 +521,11 @@ function allBeads(current = state) {
 
 function spriteInlineStyle(imageUrl) {
   return imageUrl ? ` style="background-image:url('${escapeHtml(imageUrl)}')"` : "";
+}
+
+function catActionImage(cat, action = "sit") {
+  const actionKey = ["sit", "jump", "lie"].includes(action) ? action : "sit";
+  return cat?.actionImages?.[actionKey] || cat?.imageUrl || "";
 }
 
 function loadState() {
@@ -1545,7 +1562,7 @@ async function submitAiDesign(kind, event) {
     if (!result.assetPath) throw new Error("Sprite 处理服务没有返回图片");
 
     if (kind === "cat") {
-      addAiCatDesign(name, note, result.assetPath);
+      addAiCatDesign(name, note, result.assetPath, result.actionImages);
     } else {
       addAiBeadDesign(name, note, result.assetPath);
     }
@@ -1559,13 +1576,14 @@ async function submitAiDesign(kind, event) {
   }
 }
 
-function addAiCatDesign(name, note, imageUrl) {
+function addAiCatDesign(name, note, imageUrl, actionImages = null) {
   const id = slugifyId(name, "cat");
   const cat = {
     id,
     name,
     sprite: "custom-cat",
     imageUrl,
+    actionImages,
     baseCost: 900,
     costGrowth: 1.18,
     baseZenRate: 1.2,
@@ -1756,7 +1774,8 @@ function renderCats() {
         const visual = ensureCatVisual(cat, catIndex, instanceIndex);
         const isMain = instanceIndex === 0;
         const groupLabel = count > visibleCount ? `Lv.${count} · 显示${visibleCount}/${count}` : `Lv.${count}`;
-        const imageStyle = cat.imageUrl ? ` --cat-image:url('${escapeHtml(cat.imageUrl)}');` : "";
+        const imageUrl = catActionImage(cat, visual.spriteAction);
+        const imageStyle = imageUrl ? ` --cat-image:url('${escapeHtml(imageUrl)}');` : "";
         return `
           <span
             class="cat-action-sprite ${cat.sprite} action-${visual.spriteAction} activity-${visual.activity} stage-cat show ${isMain ? "main-cat" : "clone-cat"}"
@@ -2137,7 +2156,7 @@ function renderShop() {
       const canBuy = unlocked && state.zen >= cost;
       return `
         <article class="shop-card ${unlocked ? "" : "locked"} ${canBuy ? "has-upgrade" : ""}" data-cat-card="${cat.id}">
-          <span class="sprite ${cat.sprite}"${spriteInlineStyle(cat.imageUrl)} aria-hidden="true"></span>
+          <span class="sprite ${cat.sprite}"${spriteInlineStyle(catActionImage(cat, "sit"))} aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
               <span>${escapeHtml(cat.name)}</span>
