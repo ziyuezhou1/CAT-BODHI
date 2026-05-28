@@ -1723,13 +1723,67 @@ function upgradePawTalent(talentId) {
   render();
 }
 
+function customCatPlacementEntries(current, customCats) {
+  const ids = new Set(customCats.map((cat) => cat.id));
+  return Object.fromEntries(
+    Object.entries(current.catPlacements ?? {}).filter(([key]) => ids.has(key.split(":")[0]))
+  );
+}
+
+function clampCatCare(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? Math.max(0, Math.min(100, number)) : 100;
+}
+
+function collectCustomPrestigeState(current = state) {
+  const customCats = normalizeCustomCats(current.customCats ?? []);
+  const customBeads = normalizeCustomBeads(current.customBeads ?? []);
+  const customBeadIds = new Set(customBeads.map((bead) => bead.id));
+  const mainCustomBracelet = allBracelets(current).find(({ bead, piece }) => {
+    return customBeadIds.has(bead.id) && piece.id === current.mainBraceletId;
+  });
+
+  return {
+    customCats,
+    customBeads,
+    catCounts: Object.fromEntries(customCats.map((cat) => {
+      const count = Number(current.catCounts?.[cat.id] ?? 1);
+      return [cat.id, Math.max(1, Number.isFinite(count) ? count : 1)];
+    })),
+    catMood: Object.fromEntries(customCats.map((cat) => [cat.id, clampCatCare(current.catMood?.[cat.id])])),
+    catSatiety: Object.fromEntries(customCats.map((cat) => [cat.id, clampCatCare(current.catSatiety?.[cat.id])])),
+    catPlacements: customCatPlacementEntries(current, customCats),
+    beadCollections: Object.fromEntries(customBeads.map((bead) => {
+      const collection = Array.isArray(current.beadCollections?.[bead.id])
+        ? current.beadCollections[bead.id].map((piece) => ({ ...piece }))
+        : [];
+      return [bead.id, collection.length ? collection : [makeBeadPiece(bead.id, "default", 0)]];
+    })),
+    mainBraceletId: mainCustomBracelet?.piece.id ?? "",
+  };
+}
+
+function restoreCustomPrestigeState(nextState, kept) {
+  nextState.customCats = kept.customCats;
+  nextState.customBeads = kept.customBeads;
+  nextState.catCounts = { ...nextState.catCounts, ...kept.catCounts };
+  nextState.catMood = { ...nextState.catMood, ...kept.catMood };
+  nextState.catSatiety = { ...nextState.catSatiety, ...kept.catSatiety };
+  nextState.catPlacements = { ...nextState.catPlacements, ...kept.catPlacements };
+  nextState.beadCollections = { ...nextState.beadCollections, ...kept.beadCollections };
+  if (kept.mainBraceletId) nextState.mainBraceletId = kept.mainBraceletId;
+  ensureBeadCollections(nextState);
+  ensureMainBracelet(nextState);
+}
+
 function prestigeForPaws() {
   const reward = availablePrestigePaws();
   if (reward <= 0) {
     toast("福爪还在酝酿，继续积累禅意");
     return;
   }
-  if (!confirm(`领悟 ${reward} 枚福爪并重新开铺？会重置当前禅意、普通手串、猫群和装饰，但保留福爪与图鉴成长。`)) return;
+  if (!confirm(`领悟 ${reward} 枚福爪并重新开铺？会重置当前禅意、普通手串、普通猫群和装饰，但保留福爪、自定义猫猫/珠串与图鉴成长。`)) return;
+  const keepCustom = collectCustomPrestigeState();
   const keepTotalZen = state.totalZen;
   const keepPaws = state.paws + reward;
   const keepClaimedWishes = { ...state.claimedWishes };
@@ -1743,6 +1797,7 @@ function prestigeForPaws() {
   state.pawTalentLevels = keepTalents;
   state.tutorialSeen = keepTutorial;
   state.bgmEnabled = keepBgm;
+  restoreCustomPrestigeState(state, keepCustom);
   saveState();
   toast(`福爪 +${reward}，新的盘珠日记开始了`);
   render();
