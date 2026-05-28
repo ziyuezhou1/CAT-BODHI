@@ -293,6 +293,8 @@ button {
   background-size: contain;
   image-rendering: pixelated;
   filter: drop-shadow(0 6px 0 rgba(82, 41, 18, 0.18));
+  transform: scaleX(var(--cat-face, 1));
+  transform-origin: bottom center;
 }
 
 .bracelet-sprite {
@@ -492,7 +494,7 @@ button {
   transform-origin: bottom center;
   transition: opacity 240ms ease, transform 240ms ease, left 420ms linear, bottom 180ms ease;
   rotate: 0deg;
-  transform: translateY(14px) scaleX(var(--cat-face, 1));
+  transform: translateY(14px);
   pointer-events: none;
   touch-action: none;
   isolation: isolate;
@@ -501,7 +503,7 @@ button {
 
 .stage-cat.show {
   opacity: 1;
-  transform: translateY(0) scaleX(var(--cat-face, 1));
+  transform: translateY(0);
   cursor: grab;
   pointer-events: auto;
 }
