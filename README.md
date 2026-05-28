@@ -36,6 +36,7 @@
 - 修复自定义猫猫/珠串跨浏览器存档迁移：导出存档会内嵌玩家上传形象的图片数据，导入后不再依赖本机图片路径。
 - 修复手机访问本地抠图服务的指引和接口判断：手机需打开电脑局域网地址 `http://电脑IP:8080`，不能从 GitHub Pages 直接调用电脑本地模型。
 - AI 工坊新增深度学习服务地址与检测入口；可连接本机、局域网电脑，或未来部署的 HTTPS 云端抠图服务。
+- 仓库内置最小 `sprite_alpha_seg_pytorch` 推理包与 `unet_sprite_ft.pt` 权重，部署方无需再寻找外部私有模型仓库。
 
 ---
 
@@ -128,11 +129,13 @@ Windows 也可以双击 `start-local-ai.bat` 启动本地深度学习服务。
 默认模型路径：
 
 ```env
-SPRITE_SEG_ROOT=D:\sprite_alpha_seg_pytorch
-SPRITE_SEG_PYTHON=D:\sprite_alpha_seg_pytorch\.venv\Scripts\python.exe
-SPRITE_SEG_CHECKPOINT=D:\sprite_alpha_seg_pytorch\checkpoints\unet_sprite_ft.pt
-SPRITE_SEG_OUT_DIR=D:\sprite_alpha_seg_pytorch\outputs\cat_match
+SPRITE_SEG_ROOT=./sprite_alpha_seg_pytorch
+SPRITE_SEG_PYTHON=python
+SPRITE_SEG_CHECKPOINT=./sprite_alpha_seg_pytorch/checkpoints/unet_sprite_ft.pt
+SPRITE_SEG_OUT_DIR=./sprite_alpha_seg_pytorch/outputs/cat_match
 ```
+
+Windows 本机如果存在 `D:\sprite_alpha_seg_pytorch`，服务会优先沿用该目录和其中的 `.venv`；服务器部署时默认使用仓库内置的 `sprite_alpha_seg_pytorch`。仓库没有打包 Python 虚拟环境和 PyTorch wheel，部署端需要按 `sprite_alpha_seg_pytorch/requirements.txt` 安装依赖。
 
 如果你的模型项目放在别处，可以在启动前用环境变量覆盖这些路径。
 

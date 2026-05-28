@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { copyFile, mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { execFile } from "node:child_process";
@@ -40,8 +40,12 @@ const DOUBAO_IMAGE_ENDPOINT = process.env.DOUBAO_IMAGE_ENDPOINT || "https://ark.
 const DOUBAO_REFERENCE_FIELD = process.env.DOUBAO_REFERENCE_FIELD || "image";
 const MAX_JSON_BYTES = 18 * 1024 * 1024;
 const PROXY_ENV_KEYS = ["HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY", "all_proxy"];
-const SPRITE_SEG_ROOT = process.env.SPRITE_SEG_ROOT || "D:\\sprite_alpha_seg_pytorch";
-const SPRITE_SEG_PYTHON = process.env.SPRITE_SEG_PYTHON || path.join(SPRITE_SEG_ROOT, ".venv", "Scripts", "python.exe");
+const LEGACY_SPRITE_SEG_ROOT = "D:\\sprite_alpha_seg_pytorch";
+const BUNDLED_SPRITE_SEG_ROOT = path.join(ROOT, "sprite_alpha_seg_pytorch");
+const DEFAULT_SPRITE_SEG_ROOT = existsSync(LEGACY_SPRITE_SEG_ROOT) ? LEGACY_SPRITE_SEG_ROOT : BUNDLED_SPRITE_SEG_ROOT;
+const SPRITE_SEG_ROOT = process.env.SPRITE_SEG_ROOT || DEFAULT_SPRITE_SEG_ROOT;
+const WINDOWS_VENV_PYTHON = path.join(SPRITE_SEG_ROOT, ".venv", "Scripts", "python.exe");
+const SPRITE_SEG_PYTHON = process.env.SPRITE_SEG_PYTHON || process.env.PYTHON || (existsSync(WINDOWS_VENV_PYTHON) ? WINDOWS_VENV_PYTHON : "python");
 const SPRITE_SEG_CHECKPOINT = process.env.SPRITE_SEG_CHECKPOINT || path.join(SPRITE_SEG_ROOT, "checkpoints", "unet_sprite_ft.pt");
 const SPRITE_SEG_OUT_DIR = process.env.SPRITE_SEG_OUT_DIR || path.join(SPRITE_SEG_ROOT, "outputs", "cat_match");
 const SPRITE_UPLOAD_PROCESSOR = process.env.SPRITE_UPLOAD_PROCESSOR || path.join(ROOT, "tools", "process_sprite_upload.py");
@@ -148,17 +152,31 @@ async function pathExists(filePath) {
   }
 }
 
+function isPathLike(value) {
+  return path.isAbsolute(value) || String(value).includes("/") || String(value).includes("\\");
+}
+
+async function executableAvailable(value) {
+  if (isPathLike(value)) return pathExists(value);
+  try {
+    await execFileAsync(value, ["--version"], { timeout: 5000, windowsHide: true });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function spriteServiceStatus() {
   const checks = [
-    ["model root", SPRITE_SEG_ROOT],
-    ["python", SPRITE_SEG_PYTHON],
-    ["checkpoint", SPRITE_SEG_CHECKPOINT],
-    ["processor", SPRITE_UPLOAD_PROCESSOR],
+    ["model root", SPRITE_SEG_ROOT, pathExists],
+    ["python", SPRITE_SEG_PYTHON, executableAvailable],
+    ["checkpoint", SPRITE_SEG_CHECKPOINT, pathExists],
+    ["processor", SPRITE_UPLOAD_PROCESSOR, pathExists],
   ];
-  const results = await Promise.all(checks.map(async ([label, filePath]) => ({
+  const results = await Promise.all(checks.map(async ([label, filePath, check]) => ({
     label,
     path: filePath,
-    ok: await pathExists(filePath),
+    ok: await check(filePath),
   })));
   const missing = results.filter((item) => !item.ok).map((item) => item.label);
   return {

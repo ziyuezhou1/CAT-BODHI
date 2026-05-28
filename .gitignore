@@ -1,2 +1,9 @@
 *.log
 .env
+sprite_alpha_seg_pytorch/.venv/
+sprite_alpha_seg_pytorch/.venv2/
+sprite_alpha_seg_pytorch/outputs/
+sprite_alpha_seg_pytorch/data/
+sprite_alpha_seg_pytorch/assets_transparent/
+sprite_alpha_seg_pytorch/**/*.pyc
+sprite_alpha_seg_pytorch/*.whl
