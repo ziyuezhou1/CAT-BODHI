@@ -1,6 +1,7 @@
 {
   "scripts": {
     "dev": "node server.mjs",
-    "dev:ai": "node server.mjs"
+    "dev:ai": "node server.mjs",
+    "dev:ai:proxy": "node --use-env-proxy server.mjs"
   }
 }

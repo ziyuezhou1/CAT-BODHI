@@ -11,10 +11,10 @@
   --plum: #723654;
   --cream: #fff9df;
   --shadow: rgba(37, 22, 15, 0.25);
-  --cat-icon-tabby: url("assets/art/v3/cats/tabby-sit.png?v=5");
-  --cat-icon-sleepy: url("assets/art/v3/cats/sleepy-sit.png?v=5");
-  --cat-icon-monk: url("assets/art/v3/cats/monk-sit.png?v=5");
-  --cat-icon-vendor: url("assets/art/v3/cats/vendor-sit.png?v=5");
+  --cat-icon-tabby: url("assets/art/v3/cats/tabby-sit.png?v=6");
+  --cat-icon-sleepy: url("assets/art/v3/cats/sleepy-sit.png?v=6");
+  --cat-icon-monk: url("assets/art/v3/cats/monk-sit.png?v=6");
+  --cat-icon-vendor: url("assets/art/v3/cats/vendor-sit.png?v=6");
   --icon-bracelet: url("assets/art/v3/bracelets/monkey-head-default-0.png");
   --icon-token: url("assets/art/v3/ui/token.png");
   --icon-incense: url("assets/art/v3/ui/incense.png");
@@ -269,18 +269,18 @@ button {
   -webkit-user-drag: none;
 }
 
-.cat-action-sprite.tabby.action-sit { --cat-image: url("assets/art/v3/cats/tabby-sit.png?v=5"); }
-.cat-action-sprite.tabby.action-jump { --cat-image: url("assets/art/v3/cats/tabby-jump.png?v=5"); }
-.cat-action-sprite.tabby.action-lie { --cat-image: url("assets/art/v3/cats/tabby-lie.png?v=5"); }
-.cat-action-sprite.sleepy.action-sit { --cat-image: url("assets/art/v3/cats/sleepy-sit.png?v=5"); }
-.cat-action-sprite.sleepy.action-jump { --cat-image: url("assets/art/v3/cats/sleepy-jump.png?v=5"); }
-.cat-action-sprite.sleepy.action-lie { --cat-image: url("assets/art/v3/cats/sleepy-lie.png?v=5"); }
-.cat-action-sprite.monk.action-sit { --cat-image: url("assets/art/v3/cats/monk-sit.png?v=5"); }
-.cat-action-sprite.monk.action-jump { --cat-image: url("assets/art/v3/cats/monk-jump.png?v=5"); }
-.cat-action-sprite.monk.action-lie { --cat-image: url("assets/art/v3/cats/monk-lie.png?v=5"); }
-.cat-action-sprite.vendor.action-sit { --cat-image: url("assets/art/v3/cats/vendor-sit.png?v=5"); }
-.cat-action-sprite.vendor.action-jump { --cat-image: url("assets/art/v3/cats/vendor-jump.png?v=5"); }
-.cat-action-sprite.vendor.action-lie { --cat-image: url("assets/art/v3/cats/vendor-lie.png?v=5"); }
+.cat-action-sprite.tabby.action-sit { --cat-image: url("assets/art/v3/cats/tabby-sit.png?v=6"); }
+.cat-action-sprite.tabby.action-jump { --cat-image: url("assets/art/v3/cats/tabby-jump.png?v=6"); }
+.cat-action-sprite.tabby.action-lie { --cat-image: url("assets/art/v3/cats/tabby-lie.png?v=6"); }
+.cat-action-sprite.sleepy.action-sit { --cat-image: url("assets/art/v3/cats/sleepy-sit.png?v=6"); }
+.cat-action-sprite.sleepy.action-jump { --cat-image: url("assets/art/v3/cats/sleepy-jump.png?v=6"); }
+.cat-action-sprite.sleepy.action-lie { --cat-image: url("assets/art/v3/cats/sleepy-lie.png?v=6"); }
+.cat-action-sprite.monk.action-sit { --cat-image: url("assets/art/v3/cats/monk-sit.png?v=6"); }
+.cat-action-sprite.monk.action-jump { --cat-image: url("assets/art/v3/cats/monk-jump.png?v=6"); }
+.cat-action-sprite.monk.action-lie { --cat-image: url("assets/art/v3/cats/monk-lie.png?v=6"); }
+.cat-action-sprite.vendor.action-sit { --cat-image: url("assets/art/v3/cats/vendor-sit.png?v=6"); }
+.cat-action-sprite.vendor.action-jump { --cat-image: url("assets/art/v3/cats/vendor-jump.png?v=6"); }
+.cat-action-sprite.vendor.action-lie { --cat-image: url("assets/art/v3/cats/vendor-lie.png?v=6"); }
 
 .cat-art {
   position: absolute;
@@ -962,6 +962,23 @@ button:disabled.has-upgrade::after {
 .ai-forge textarea {
   resize: vertical;
   min-height: 54px;
+}
+
+.ai-forge textarea[readonly] {
+  cursor: text;
+  background:
+    linear-gradient(180deg, rgba(255, 249, 223, 0.98), rgba(241, 255, 230, 0.9));
+}
+
+.sprite-prompt-button {
+  width: 100%;
+}
+
+.sprite-prompt-text {
+  max-height: 132px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  white-space: pre-wrap;
 }
 
 .ai-forge small {

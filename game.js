@@ -370,18 +370,16 @@ const elements = {
   catAiForm: $("#catAiForm"),
   catAiName: $("#catAiName"),
   catAiNote: $("#catAiNote"),
-  catAiModel: $("#catAiModel"),
-  catAiCustomModel: $("#catAiCustomModel"),
-  catAiApiKey: $("#catAiApiKey"),
+  catPromptButton: $("#catPromptButton"),
+  catPromptText: $("#catPromptText"),
   catAiPhoto: $("#catAiPhoto"),
   catAiButton: $("#catAiButton"),
   catAiStatus: $("#catAiStatus"),
   beadAiForm: $("#beadAiForm"),
   beadAiName: $("#beadAiName"),
   beadAiNote: $("#beadAiNote"),
-  beadAiModel: $("#beadAiModel"),
-  beadAiCustomModel: $("#beadAiCustomModel"),
-  beadAiApiKey: $("#beadAiApiKey"),
+  beadPromptButton: $("#beadPromptButton"),
+  beadPromptText: $("#beadPromptText"),
   beadAiPhoto: $("#beadAiPhoto"),
   beadAiButton: $("#beadAiButton"),
   beadAiStatus: $("#beadAiStatus"),
@@ -419,6 +417,25 @@ const elements = {
   importSaveButton: $("#importSaveButton"),
   importSaveInput: $("#importSaveInput"),
   resetButton: $("#resetButton"),
+};
+
+const SPRITE_STYLE_PROMPTS = {
+  cat: [
+    "请参考我附上的现实猫咪照片，保留猫咪最有辨识度的毛色、脸部花纹、眼神印象、耳朵/尾巴轮廓和体型比例。",
+    "目标：生成一张可直接用于《猫猫盘珠日记》的单体猫咪 sprite。风格必须匹配当前游戏素材：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、少量暖金/青绿色点缀、边缘清晰、可爱但仍像参考照片里的猫。",
+    "构图：正方形画布，单只猫，全身，居中，3/4 视角，idle/sit 动作，四周留出安全边距，不要裁切耳朵和尾巴。",
+    "背景：优先透明背景；如果模型不能透明，请使用纯色抠图绿背景 #04F90E，背景必须平整无纹理、无阴影、无地面。",
+    "禁止：文字、签名、边框、UI、相框、复杂场景、玩具/衣服/道具遮挡猫、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
+    "输出：一张 PNG 风格图，主体清晰，适合后续抠背景和裁切成 128x128 游戏 sprite。",
+  ].join("\n"),
+  bead: [
+    "请参考我附上的现实文玩/手串照片，保留珠子的材质、颜色、纹理、孔道、绳结/隔珠关系，以及最有辨识度的包浆或花纹。",
+    "目标：生成一张可直接用于《猫猫盘珠日记》的单体文玩手串 sprite。风格必须匹配当前游戏素材：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、暖金与青绿色点缀、边缘清晰、材质特征可读。",
+    "构图：正方形画布，完整圆形或椭圆形手串，居中，俯视或轻微 3/4 视角，所有珠子属于同一串，整体轮廓尽量连贯，四周留出安全边距。",
+    "背景：优先透明背景；如果模型不能透明，请使用纯色抠图绿背景 #04F90E，背景必须平整无纹理、无阴影、无桌面。",
+    "禁止：文字、签名、边框、UI、手、桌面、展示盒、散落珠子、复杂场景、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
+    "输出：一张 PNG 风格图，主体清晰，适合后续抠背景和裁切成 128x128 游戏 sprite。",
+  ].join("\n"),
 };
 
 const bgmAudio = new Audio(bgmTracks[0]);
@@ -1380,9 +1397,8 @@ function aiFormElements(kind) {
       form: elements.catAiForm,
       name: elements.catAiName,
       note: elements.catAiNote,
-      model: elements.catAiModel,
-      customModel: elements.catAiCustomModel,
-      apiKey: elements.catAiApiKey,
+      promptButton: elements.catPromptButton,
+      promptText: elements.catPromptText,
       photo: elements.catAiPhoto,
       button: elements.catAiButton,
       status: elements.catAiStatus,
@@ -1391,28 +1407,19 @@ function aiFormElements(kind) {
       form: elements.beadAiForm,
       name: elements.beadAiName,
       note: elements.beadAiNote,
-      model: elements.beadAiModel,
-      customModel: elements.beadAiCustomModel,
-      apiKey: elements.beadAiApiKey,
+      promptButton: elements.beadPromptButton,
+      promptText: elements.beadPromptText,
       photo: elements.beadAiPhoto,
       button: elements.beadAiButton,
       status: elements.beadAiStatus,
     };
 }
 
-function syncAiModelInput(kind) {
-  const form = aiFormElements(kind);
-  const isCustom = form.model?.value === "custom";
-  if (!form.customModel) return;
-  form.customModel.disabled = !isCustom;
-  form.customModel.required = isCustom;
-  if (!isCustom) form.customModel.value = "";
-}
-
-function selectedAiModel(kind) {
-  const form = aiFormElements(kind);
-  if (form.model?.value === "custom") return form.customModel?.value.trim() || "";
-  return form.model?.value || "local-pixel";
+function syncSpritePromptTexts() {
+  ["cat", "bead"].forEach((kind) => {
+    const form = aiFormElements(kind);
+    if (form.promptText) form.promptText.value = SPRITE_STYLE_PROMPTS[kind];
+  });
 }
 
 function setAiStatus(kind, message, isError = false) {
@@ -1432,7 +1439,7 @@ function formatFileSize(bytes) {
 function syncAiPhotoUploadStatus(kind) {
   const form = aiFormElements(kind);
   const file = form.photo?.files?.[0];
-  const label = kind === "cat" ? "猫照" : "手串照";
+  const label = kind === "cat" ? "猫猫 sprite" : "手串 sprite";
   if (!file) {
     setAiStatus(kind, `还没有上传${label}。`);
     return;
@@ -1445,21 +1452,40 @@ function syncAiPhotoUploadStatus(kind) {
     setAiStatus(kind, "图片太大了，请压到 12MB 以内。", true);
     return;
   }
-  setAiStatus(kind, `已上传${label}：${file.name}（${formatFileSize(file.size)}），可以开始生成。`);
+  setAiStatus(kind, `已上传${label}：${file.name}（${formatFileSize(file.size)}），可以开始处理。`);
 }
 
-function aiDesignErrorMessage(error) {
+async function copySpritePrompt(kind) {
+  const form = aiFormElements(kind);
+  const prompt = SPRITE_STYLE_PROMPTS[kind];
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(prompt);
+    } else {
+      form.promptText?.focus();
+      form.promptText?.select();
+      document.execCommand("copy");
+    }
+    setAiStatus(kind, "提示词已复制。去外部模型粘贴它，并附上现实照片生成 sprite。");
+  } catch {
+    form.promptText?.focus();
+    form.promptText?.select();
+    setAiStatus(kind, "浏览器没有允许自动复制，已选中提示词，可以手动复制。", true);
+  }
+}
+
+function spriteImportErrorMessage(error) {
   const message = error?.message || "生成失败";
   if (error?.localServiceUnavailable || message === "LOCAL_AI_SERVICE_UNREACHABLE") {
-    return "无法连接本地 AI 服务。请先在项目目录运行 npm run dev:ai，然后用 http://localhost:8080 打开页面。";
+    return "无法连接本地 sprite 处理服务。请先在项目目录运行 npm run dev:ai，然后用 http://localhost:8080 打开页面。";
   }
-  return `${message}。请确认已用本地 AI 服务打开页面，并配置对应模型的 API Key。`;
+  return `${message}。请确认已用本地服务打开页面，并且 D:\\sprite_alpha_seg_pytorch 的模型环境可用。`;
 }
 
-function aiDesignEndpoint() {
+function spriteImportEndpoint() {
   const host = window.location.hostname;
   const servedByLocalAi = (host === "localhost" || host === "127.0.0.1") && window.location.port === "8080";
-  return servedByLocalAi ? "/api/ai-design" : "http://localhost:8080/api/ai-design";
+  return servedByLocalAi ? "/api/sprite-import" : "http://localhost:8080/api/sprite-import";
 }
 
 function readFileAsDataUrl(file) {
@@ -1476,11 +1502,9 @@ async function submitAiDesign(kind, event) {
   const form = aiFormElements(kind);
   const name = form.name.value.trim();
   const note = form.note.value.trim();
-  const model = selectedAiModel(kind);
-  const apiKey = form.apiKey?.value.trim() || "";
   const file = form.photo.files?.[0];
   if (!name || !file) {
-    setAiStatus(kind, "请先填写名字并上传照片。", true);
+    setAiStatus(kind, "请先填写名字并上传外部模型生成的 sprite。", true);
     return;
   }
   if (!file.type.startsWith("image/")) {
@@ -1491,27 +1515,20 @@ async function submitAiDesign(kind, event) {
     setAiStatus(kind, "图片太大了，请压到 12MB 以内。", true);
     return;
   }
-  if (!model) {
-    setAiStatus(kind, "请填写自定义模型名，或选择一个内置模型。", true);
-    return;
-  }
 
   form.button.disabled = true;
-  const modelLabel = model.replace(/^(openai|qwen|doubao):/, "");
-  setAiStatus(kind, model === "local-pixel" ? "正在用免费本地模型生成..." : `AI 正在使用 ${modelLabel} 设计像素形象，并附带现有素材作风格参考...`);
+  setAiStatus(kind, "正在调用本地深度学习模型抠背景、裁切并整理为游戏 sprite...");
   try {
     const imageDataUrl = await readFileAsDataUrl(file);
     let response;
     try {
-      response = await fetch(aiDesignEndpoint(), {
+      response = await fetch(spriteImportEndpoint(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           kind,
           name,
           note,
-          model,
-          apiKey,
           imageDataUrl,
           imageName: file.name,
           mimeType: file.type,
@@ -1524,8 +1541,8 @@ async function submitAiDesign(kind, event) {
       throw localError;
     }
     const result = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(result.error || "AI 服务暂时不可用");
-    if (!result.assetPath) throw new Error("AI 服务没有返回图片");
+    if (!response.ok) throw new Error(result.error || "Sprite 处理服务暂时不可用");
+    if (!result.assetPath) throw new Error("Sprite 处理服务没有返回图片");
 
     if (kind === "cat") {
       addAiCatDesign(name, note, result.assetPath);
@@ -1533,9 +1550,10 @@ async function submitAiDesign(kind, event) {
       addAiBeadDesign(name, note, result.assetPath);
     }
     form.form.reset();
-    setAiStatus(kind, "生成完成，已经加入存档。");
+    syncSpritePromptTexts();
+    setAiStatus(kind, "处理完成，已经加入存档。");
   } catch (error) {
-    setAiStatus(kind, aiDesignErrorMessage(error), true);
+    setAiStatus(kind, spriteImportErrorMessage(error), true);
   } finally {
     form.button.disabled = false;
   }
@@ -2568,8 +2586,8 @@ function bindEvents() {
   elements.guideNextButton.addEventListener("click", nextGuideStep);
   elements.catAiForm?.addEventListener("submit", (event) => submitAiDesign("cat", event));
   elements.beadAiForm?.addEventListener("submit", (event) => submitAiDesign("bead", event));
-  elements.catAiModel?.addEventListener("change", () => syncAiModelInput("cat"));
-  elements.beadAiModel?.addEventListener("change", () => syncAiModelInput("bead"));
+  elements.catPromptButton?.addEventListener("click", () => copySpritePrompt("cat"));
+  elements.beadPromptButton?.addEventListener("click", () => copySpritePrompt("bead"));
   elements.catAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("cat"));
   elements.beadAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("bead"));
   elements.catGroupCloseButton.addEventListener("click", closeCatGroupPanel);
@@ -2673,8 +2691,7 @@ function switchTab(tab) {
 }
 
 bindEvents();
-syncAiModelInput("cat");
-syncAiModelInput("bead");
+syncSpritePromptTexts();
 render();
 syncBgmButton();
 saveState();

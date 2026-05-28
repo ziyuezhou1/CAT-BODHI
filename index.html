@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>猫猫盘珠日记</title>
-    <link rel="stylesheet" href="styles.css?v=8" />
+    <link rel="stylesheet" href="styles.css?v=9" />
   </head>
   <body>
     <main class="game-shell">
@@ -110,30 +110,20 @@
             <form class="ai-forge" id="catAiForm">
               <div class="card-title">
                 <span>AI猫猫形象</span>
-                <span>照片生成</span>
+                <span>外部生成</span>
               </div>
+              <button class="shop-button secondary sprite-prompt-button" id="catPromptButton" type="button">复制猫猫提示词</button>
+              <textarea class="sprite-prompt-text" id="catPromptText" rows="5" readonly aria-label="猫猫 sprite 生图提示词"></textarea>
+              <small>去千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上自己的现实猫照；生成 sprite 后回到这里上传。</small>
               <input id="catAiName" name="name" type="text" maxlength="18" placeholder="猫猫名字" required />
-              <textarea id="catAiNote" name="note" rows="2" placeholder="性格、花纹重点，例如：保留左脸橘色斑纹"></textarea>
-              <select id="catAiModel" name="model" aria-label="猫猫生成模型">
-                <option value="local-pixel">免费本地像素化（无需 API Key）</option>
-                <option value="qwen:qwen-image-2.0-pro">千问 Qwen Image 2.0 Pro</option>
-                <option value="qwen:qwen-image-edit-plus">千问 Qwen Image Edit Plus</option>
-                <option value="doubao:doubao-seedream-4.5">豆包 Seedream 4.5</option>
-                <option value="doubao:doubao-seedream-4.0">豆包 Seedream 4.0</option>
-                <option value="openai:gpt-image-1.5">OpenAI GPT Image 1.5</option>
-                <option value="openai:gpt-image-1">OpenAI GPT Image 1</option>
-                <option value="openai:gpt-image-1-mini">OpenAI GPT Image 1 Mini</option>
-                <option value="custom">自定义模型</option>
-              </select>
-              <input id="catAiCustomModel" name="customModel" type="text" placeholder="openai:gpt-image-1.5 / qwen:qwen-image-2.0-pro / doubao:模型名" disabled />
-              <input id="catAiApiKey" name="apiKey" type="password" placeholder="API Key（可选，不填则用服务端配置）" />
+              <textarea id="catAiNote" name="note" rows="2" placeholder="入档备注，例如：左脸橘色斑纹"></textarea>
               <label class="file-pick">
                 <span class="ui-icon sparkle" aria-hidden="true"></span>
-                <span>上传现实猫照</span>
+                <span>上传生成后的猫猫 sprite</span>
                 <input id="catAiPhoto" name="photo" type="file" accept="image/png,image/jpeg,image/webp" required />
               </label>
-              <button class="shop-button has-upgrade" id="catAiButton" type="submit">生成并加入猫缘</button>
-              <small id="catAiStatus">免费本地模型可直接用；云模型会自动附带现有猫素材作风格参考</small>
+              <button class="shop-button has-upgrade" id="catAiButton" type="submit">抠图切割并加入猫缘</button>
+              <small id="catAiStatus">先复制提示词生成 sprite，再上传图片；本地模型会抠背景并裁成游戏素材</small>
             </form>
             <div class="shop-list" id="catShop"></div>
           </section>
@@ -142,30 +132,20 @@
             <form class="ai-forge" id="beadAiForm">
               <div class="card-title">
                 <span>AI新串设计</span>
-                <span>照片生成</span>
+                <span>外部生成</span>
               </div>
+              <button class="shop-button secondary sprite-prompt-button" id="beadPromptButton" type="button">复制手串提示词</button>
+              <textarea class="sprite-prompt-text" id="beadPromptText" rows="5" readonly aria-label="文玩手串 sprite 生图提示词"></textarea>
+              <small>去千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上自己的现实文玩照片；生成 sprite 后回到这里上传。</small>
               <input id="beadAiName" name="name" type="text" maxlength="18" placeholder="手串名字" required />
-              <textarea id="beadAiNote" name="note" rows="2" placeholder="材质、颜色、珠型重点，例如：星月孔道明显"></textarea>
-              <select id="beadAiModel" name="model" aria-label="手串生成模型">
-                <option value="local-pixel">免费本地像素化（无需 API Key）</option>
-                <option value="qwen:qwen-image-2.0-pro">千问 Qwen Image 2.0 Pro</option>
-                <option value="qwen:qwen-image-edit-plus">千问 Qwen Image Edit Plus</option>
-                <option value="doubao:doubao-seedream-4.5">豆包 Seedream 4.5</option>
-                <option value="doubao:doubao-seedream-4.0">豆包 Seedream 4.0</option>
-                <option value="openai:gpt-image-1.5">OpenAI GPT Image 1.5</option>
-                <option value="openai:gpt-image-1">OpenAI GPT Image 1</option>
-                <option value="openai:gpt-image-1-mini">OpenAI GPT Image 1 Mini</option>
-                <option value="custom">自定义模型</option>
-              </select>
-              <input id="beadAiCustomModel" name="customModel" type="text" placeholder="openai:gpt-image-1.5 / qwen:qwen-image-2.0-pro / doubao:模型名" disabled />
-              <input id="beadAiApiKey" name="apiKey" type="password" placeholder="API Key（可选，不填则用服务端配置）" />
+              <textarea id="beadAiNote" name="note" rows="2" placeholder="入档备注，例如：星月孔道明显"></textarea>
               <label class="file-pick">
                 <span class="ui-icon sparkle" aria-hidden="true"></span>
-                <span>上传现实手串照</span>
+                <span>上传生成后的手串 sprite</span>
                 <input id="beadAiPhoto" name="photo" type="file" accept="image/png,image/jpeg,image/webp" required />
               </label>
-              <button class="shop-button has-upgrade" id="beadAiButton" type="submit">生成并加入珠阶</button>
-              <small id="beadAiStatus">免费本地模型可直接用；云模型会自动附带现有手串素材作风格参考</small>
+              <button class="shop-button has-upgrade" id="beadAiButton" type="submit">抠图切割并加入珠阶</button>
+              <small id="beadAiStatus">先复制提示词生成 sprite，再上传图片；本地模型会抠背景并裁成游戏素材</small>
             </form>
             <div class="bead-board" id="beadBoard"></div>
           </section>

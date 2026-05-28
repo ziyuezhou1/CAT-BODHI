@@ -1,3 +1,7 @@
+## 在线游玩
+
+[打开 GitHub Pages 版猫猫盘串铺](https://ziyuezhou1.github.io/CAT-BODHI/)
+
 <div align="center">
 
 ```
@@ -14,6 +18,18 @@
 ```
 
 </div>
+
+---
+
+## 更新内容
+
+### 2026-05-28
+
+- 重做 AI 形象工坊流程：游戏内复制稳定 sprite 生图提示词，玩家到千问、豆包、OpenAI、Gemini 等外部模型自行生成图片。
+- 上传外部生成的猫猫/文玩 sprite 后，本地服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型抠背景、裁切，并把处理后的 PNG 加入游戏存档。
+- 新增 `/api/sprite-import` 本地导入接口，以及 `tools/process_sprite_upload.py` 处理脚本。
+- 猫缘和珠阶面板移除 API Key 与模型选择输入，改成复制提示词、上传 sprite、取名入档的流程。
+- README 补充本地 sprite 处理模型路径配置。
 
 ---
 
@@ -82,33 +98,31 @@ python -m http.server 8080
 
 ### AI 形象工坊
 
-猫缘页可以上传现实猫照生成专属猫猫，珠阶页可以上传现实手串照生成新串。页面内置“免费本地像素化（无需 API Key）”，也可以选择千问、豆包、OpenAI 图片模型，或填写自定义模型名。云模型生成时会自动附带项目内已有猫/手串素材作为风格参考，让新图更接近当前像素风。AI 生图需要用本地 Node 服务启动，避免把 API Key 暴露在浏览器里：
+猫缘页和珠阶页现在使用“外部模型生成 + 本地抠图切割”的流程：
+
+1. 在游戏里点击“复制猫猫提示词”或“复制手串提示词”。
+2. 到自己的千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上现实猫照或文玩照片。
+3. 把外部模型生成的 sprite 图片上传回游戏，填写名字。
+4. 本地 Node 服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型，把结果写到 `D:\sprite_alpha_seg_pytorch\outputs\cat_match\<任务名>`，再复制处理后的 PNG 到 `assets/ai/cats` 或 `assets/ai/beads` 并加入存档。
+
+启动本地服务：
 
 ```bash
-$env:OPENAI_API_KEY="你的 OpenAI API Key"
 npm run dev:ai
 ```
 
 然后打开 `http://localhost:8080`。
 
-千问和豆包也要在启动服务前配置密钥。PowerShell 示例：
-
-```bash
-$env:DASHSCOPE_API_KEY="你的千问 DashScope Key"
-$env:DOUBAO_API_KEY="你的豆包/火山方舟 Key"
-$env:ARK_API_KEY="你的火山方舟 Key"
-npm run dev:ai
-```
-
-也可以在项目根目录新建 `.env`，本地服务启动时会自动读取：
+默认模型路径：
 
 ```env
-DASHSCOPE_API_KEY=你的千问 DashScope Key
-DOUBAO_API_KEY=你的豆包/火山方舟 Key
-ARK_API_KEY=你的火山方舟 Key
+SPRITE_SEG_ROOT=D:\sprite_alpha_seg_pytorch
+SPRITE_SEG_PYTHON=D:\sprite_alpha_seg_pytorch\.venv\Scripts\python.exe
+SPRITE_SEG_CHECKPOINT=D:\sprite_alpha_seg_pytorch\checkpoints\unet_sprite_ft.pt
+SPRITE_SEG_OUT_DIR=D:\sprite_alpha_seg_pytorch\outputs\cat_match
 ```
 
-自定义模型名格式：`openai:gpt-image-1.5`、`qwen:qwen-image-2.0-pro`、`doubao:你的模型名`。可通过 `$env:OPENAI_IMAGE_MODEL`、`$env:QWEN_IMAGE_ENDPOINT`、`$env:DOUBAO_IMAGE_ENDPOINT` 调整服务端默认模型或接口地址。豆包参考图字段默认是方舟接口的 `image`；如果接入其他豆包兼容接口，可用 `$env:DOUBAO_REFERENCE_FIELD="reference_images"` 切换。
+如果你的模型项目放在别处，可以在启动前用环境变量覆盖这些路径。
 
 ---
 
@@ -117,7 +131,7 @@ ARK_API_KEY=你的火山方舟 Key
 ```
 CAT-BODHI/
 ├── index.html          # 游戏入口
-├── server.mjs          # 本地 AI 图片生成代理与静态服务器
+├── server.mjs          # 本地 sprite 导入处理服务与静态服务器
 ├── game.js             # 核心逻辑 (状态管理 / 数值系统 / UI 渲染)
 ├── styles.css          # 像素风视觉系统
 └── assets/
