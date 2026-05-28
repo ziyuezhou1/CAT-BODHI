@@ -31,6 +31,7 @@
 - 新增 `/api/sprite-import` 本地导入接口，以及 `tools/process_sprite_upload.py` 处理脚本。
 - 猫缘和珠阶面板移除 API Key 与模型选择输入，改成复制提示词、上传 sprite、取名入档的流程。
 - README 补充本地 sprite 处理模型路径配置。
+- 修复微信内置浏览器无法下载存档文件的问题：微信中导出会显示可复制的存档文本。
 
 ---
 

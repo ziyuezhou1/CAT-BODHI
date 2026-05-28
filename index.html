@@ -182,6 +182,21 @@
 
     <div class="toast-stack" id="toastStack" aria-live="polite"></div>
 
+    <div class="save-export-layer" id="saveExportLayer" hidden>
+      <section class="save-export-card pixel-panel" role="dialog" aria-modal="true" aria-labelledby="saveExportTitle">
+        <div class="guide-head">
+          <small id="saveExportFilename">cat-bodhi-save.json</small>
+          <button class="guide-close ghost-button" id="saveExportCloseButton" type="button" aria-label="关闭导出存档">×</button>
+        </div>
+        <h2 id="saveExportTitle">导出存档</h2>
+        <textarea id="saveExportText" readonly aria-label="存档文本"></textarea>
+        <div class="save-export-actions">
+          <button class="primary-action" id="saveExportCopyButton" type="button">复制存档文本</button>
+          <button class="ghost-button" id="saveExportSelectButton" type="button">全选</button>
+        </div>
+      </section>
+    </div>
+
     <div class="guide-layer" id="guideLayer" hidden>
       <div class="guide-backdrop" aria-hidden="true"></div>
       <div class="guide-spotlight" id="guideSpotlight" aria-hidden="true"></div>
@@ -202,6 +217,6 @@
       </section>
     </div>
 
-    <script src="game.js?v=9"></script>
+    <script src="game.js?v=10"></script>
   </body>
 </html>

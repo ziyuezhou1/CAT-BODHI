@@ -416,6 +416,12 @@ const elements = {
   exportSaveButton: $("#exportSaveButton"),
   importSaveButton: $("#importSaveButton"),
   importSaveInput: $("#importSaveInput"),
+  saveExportLayer: $("#saveExportLayer"),
+  saveExportFilename: $("#saveExportFilename"),
+  saveExportText: $("#saveExportText"),
+  saveExportCloseButton: $("#saveExportCloseButton"),
+  saveExportCopyButton: $("#saveExportCopyButton"),
+  saveExportSelectButton: $("#saveExportSelectButton"),
   resetButton: $("#resetButton"),
 };
 
@@ -590,15 +596,66 @@ function saveExportPayload() {
   };
 }
 
+function exportFilename() {
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+  return `cat-bodhi-save-${stamp}.json`;
+}
+
+function isWeChatBrowser() {
+  return /micromessenger/i.test(navigator.userAgent || "");
+}
+
+function selectExportText() {
+  const text = elements.saveExportText;
+  if (!text) return;
+  text.focus();
+  text.select();
+  text.setSelectionRange?.(0, text.value.length);
+}
+
+function openSaveExportPanel(payload, filename, message = "存档文本已生成，可以复制保存。") {
+  elements.saveExportFilename.textContent = filename;
+  elements.saveExportText.value = payload;
+  elements.saveExportLayer.hidden = false;
+  selectExportText();
+  toast(message);
+}
+
+function closeSaveExportPanel() {
+  elements.saveExportLayer.hidden = true;
+}
+
+async function copySaveExportText() {
+  const text = elements.saveExportText?.value || "";
+  if (!text) return;
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      selectExportText();
+      document.execCommand("copy");
+    }
+    toast("存档文本已复制");
+  } catch {
+    selectExportText();
+    toast("已全选存档文本，请长按复制");
+  }
+}
+
 function exportSave() {
   saveState();
   const payload = JSON.stringify(saveExportPayload(), null, 2);
+  const filename = exportFilename();
+  if (isWeChatBrowser()) {
+    openSaveExportPanel(payload, filename, "微信内无法稳定下载文件，已生成可复制的存档文本。");
+    return;
+  }
+
   const blob = new Blob([payload], { type: "application/json" });
   const url = URL.createObjectURL(blob);
-  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
   const link = document.createElement("a");
   link.href = url;
-  link.download = `cat-bodhi-save-${stamp}.json`;
+  link.download = filename;
   document.body.append(link);
   link.click();
   link.remove();
@@ -2611,6 +2668,9 @@ function bindEvents() {
   elements.beadAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("bead"));
   elements.catGroupCloseButton.addEventListener("click", closeCatGroupPanel);
   elements.exportSaveButton.addEventListener("click", exportSave);
+  elements.saveExportCloseButton.addEventListener("click", closeSaveExportPanel);
+  elements.saveExportCopyButton.addEventListener("click", copySaveExportText);
+  elements.saveExportSelectButton.addEventListener("click", selectExportText);
   elements.importSaveButton.addEventListener("click", () => elements.importSaveInput.click());
   elements.importSaveInput.addEventListener("change", () => importSaveFile(elements.importSaveInput.files?.[0]));
   elements.catLayer.addEventListener("pointerdown", beginCatDrag);
@@ -2665,6 +2725,11 @@ function bindEvents() {
   });
 
   document.addEventListener("keydown", (event) => {
+    if (!elements.saveExportLayer.hidden && event.key === "Escape") {
+      closeSaveExportPanel();
+      return;
+    }
+
     if (guideOpen && event.key === "Escape") {
       closeGuide(true);
       return;

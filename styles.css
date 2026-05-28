@@ -1229,6 +1229,53 @@ button:disabled.has-upgrade::after {
   font-weight: 900;
 }
 
+.save-export-layer[hidden] {
+  display: none;
+}
+
+.save-export-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  background: rgba(35, 22, 15, 0.46);
+}
+
+.save-export-card {
+  width: min(620px, 100%);
+  max-height: min(78vh, 680px);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.save-export-card h2 {
+  margin: 0;
+  color: #3d2216;
+  font-size: 1.2rem;
+}
+
+.save-export-card textarea {
+  width: 100%;
+  min-height: 260px;
+  max-height: 46vh;
+  resize: vertical;
+  border: 3px solid #643316;
+  border-radius: 6px;
+  padding: 9px;
+  color: #3d2216;
+  background: rgba(255, 249, 223, 0.96);
+  font: 700 0.78rem/1.35 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.save-export-actions {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+}
+
 .guide-layer[hidden] {
   display: none;
 }
