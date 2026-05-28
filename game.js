@@ -470,15 +470,24 @@ function escapeHtml(value) {
     .replace(/'/g, "&#39;");
 }
 
+function normalizeStoredImageUrl(value) {
+  const url = String(value || "");
+  const path = url.replace(/^\.\//, "");
+  const pageHost = globalThis.window?.location?.hostname ?? "";
+  const remotePage = pageHost && pageHost !== "localhost" && pageHost !== "127.0.0.1";
+  if (remotePage && path.startsWith("assets/ai/")) return `http://localhost:8080/${path}`;
+  return url;
+}
+
 function normalizeCustomCats(items = []) {
   return (Array.isArray(items) ? items : [])
     .filter((cat) => cat && cat.id && (cat.imageUrl || cat.actionImages?.sit || cat.actionImages?.jump || cat.actionImages?.lie))
     .map((cat) => {
       const rawImages = cat.actionImages && typeof cat.actionImages === "object" ? cat.actionImages : {};
-      const imageUrl = String(cat.imageUrl || rawImages.sit || rawImages.jump || rawImages.lie || "");
+      const imageUrl = normalizeStoredImageUrl(cat.imageUrl || rawImages.sit || rawImages.jump || rawImages.lie || "");
       const actionImages = {};
       ["sit", "jump", "lie"].forEach((action) => {
-        const value = rawImages[action] || imageUrl;
+        const value = normalizeStoredImageUrl(rawImages[action] || imageUrl);
         if (value) actionImages[action] = String(value);
       });
       return {
@@ -505,7 +514,7 @@ function normalizeCustomBeads(items = []) {
       id: String(bead.id),
       name: String(bead.name || "AI新串").slice(0, 18),
       sprite: "custom-bead",
-      imageUrl: String(bead.imageUrl),
+      imageUrl: normalizeStoredImageUrl(bead.imageUrl),
       threshold: Math.max(0, Number(bead.threshold ?? 0)),
       unlockCost: Math.max(0, Number(bead.unlockCost ?? 0)),
       baseCost: Math.max(1, Number(bead.baseCost ?? 1200)),
@@ -586,13 +595,104 @@ function saveState() {
   elements.saveStatus.textContent = `已存档 ${new Date().toLocaleTimeString("zh-Hans", { hour: "2-digit", minute: "2-digit" })}`;
 }
 
-function saveExportPayload() {
+function clonePlain(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function isImageDataUrl(value) {
+  return /^data:image\//i.test(String(value || ""));
+}
+
+function customExportImageUrls(exportState) {
+  const urls = new Set();
+  const addUrl = (value) => {
+    const url = normalizeStoredImageUrl(value).trim();
+    if (url && !isImageDataUrl(url)) urls.add(url);
+  };
+
+  const customCats = normalizeCustomCats(exportState.customCats ?? []);
+  customCats.forEach((cat) => {
+    addUrl(cat.imageUrl);
+    Object.values(cat.actionImages ?? {}).forEach(addUrl);
+  });
+
+  const customBeads = normalizeCustomBeads(exportState.customBeads ?? []);
+  const customBeadIds = new Set(customBeads.map((bead) => bead.id));
+  customBeads.forEach((bead) => addUrl(bead.imageUrl));
+  Object.entries(exportState.beadCollections ?? {}).forEach(([beadId, collection]) => {
+    if (!customBeadIds.has(beadId) || !Array.isArray(collection)) return;
+    collection.forEach((piece) => addUrl(piece?.imageUrl));
+  });
+
+  return [...urls];
+}
+
+async function fetchImageAsDataUrl(imageUrl) {
+  const response = await fetch(imageUrl, { cache: "no-store" });
+  if (!response.ok) throw new Error(`读取图片失败：${response.status}`);
+  const blob = await response.blob();
+  if (!blob.type.startsWith("image/")) throw new Error("读取到的不是图片");
+  return readBlobAsDataUrl(blob);
+}
+
+async function customImageDataMap(exportState) {
+  const urls = customExportImageUrls(exportState);
+  const imageMap = new Map();
+  const failedUrls = [];
+  for (const url of urls) {
+    try {
+      imageMap.set(url, await fetchImageAsDataUrl(url));
+    } catch {
+      failedUrls.push(url);
+    }
+  }
+  return { imageMap, failedUrls };
+}
+
+function embedImageUrl(value, imageMap) {
+  const url = normalizeStoredImageUrl(value);
+  return imageMap.get(url) || url;
+}
+
+function embedCustomImagesInExportState(exportState, imageMap) {
+  exportState.customCats = normalizeCustomCats(exportState.customCats ?? []).map((cat) => ({
+    ...cat,
+    imageUrl: embedImageUrl(cat.imageUrl, imageMap),
+    actionImages: Object.fromEntries(
+      Object.entries(cat.actionImages ?? {}).map(([action, imageUrl]) => [action, embedImageUrl(imageUrl, imageMap)])
+    ),
+  }));
+
+  exportState.customBeads = normalizeCustomBeads(exportState.customBeads ?? []).map((bead) => ({
+    ...bead,
+    imageUrl: embedImageUrl(bead.imageUrl, imageMap),
+  }));
+
+  const customBeadIds = new Set(exportState.customBeads.map((bead) => bead.id));
+  exportState.beadCollections = { ...(exportState.beadCollections ?? {}) };
+  Object.entries(exportState.beadCollections).forEach(([beadId, collection]) => {
+    if (!customBeadIds.has(beadId) || !Array.isArray(collection)) return;
+    exportState.beadCollections[beadId] = collection.map((piece) => ({
+      ...piece,
+      imageUrl: embedImageUrl(piece?.imageUrl, imageMap),
+    }));
+  });
+}
+
+async function saveExportPayload() {
+  const exportState = clonePlain(state);
+  const { imageMap, failedUrls } = await customImageDataMap(exportState);
+  embedCustomImagesInExportState(exportState, imageMap);
   return {
     app: "cat-bodhi",
     saveKey: SAVE_KEY,
     exportedAt: new Date().toISOString(),
     version: BALANCE.version,
-    state,
+    customImageExport: {
+      embeddedCount: imageMap.size,
+      failedCount: failedUrls.length,
+    },
+    state: exportState,
   };
 }
 
@@ -642,25 +742,44 @@ async function copySaveExportText() {
   }
 }
 
-function exportSave() {
-  saveState();
-  const payload = JSON.stringify(saveExportPayload(), null, 2);
-  const filename = exportFilename();
-  if (isWeChatBrowser()) {
-    openSaveExportPanel(payload, filename, "微信内无法稳定下载文件，已生成可复制的存档文本。");
-    return;
+function exportToastMessage(baseMessage, stats) {
+  if (stats?.failedCount > 0) {
+    return `${baseMessage}，但 ${stats.failedCount} 张自定义图片无法内嵌`;
   }
+  if (stats?.embeddedCount > 0) {
+    return `${baseMessage}，已包含 ${stats.embeddedCount} 张自定义图片`;
+  }
+  return baseMessage;
+}
 
-  const blob = new Blob([payload], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = filename;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  toast("存档已导出");
+async function exportSave() {
+  saveState();
+  elements.exportSaveButton.disabled = true;
+  try {
+    toast("正在整理存档图片...");
+    const exportData = await saveExportPayload();
+    const payload = JSON.stringify(exportData, null, 2);
+    const filename = exportFilename();
+    if (isWeChatBrowser()) {
+      openSaveExportPanel(payload, filename, exportToastMessage("微信内无法稳定下载文件，已生成可复制的存档文本", exportData.customImageExport));
+      return;
+    }
+
+    const blob = new Blob([payload], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.append(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    toast(exportToastMessage("存档已导出", exportData.customImageExport));
+  } catch (error) {
+    toast(`导出失败：${error.message || "存档图片无法读取"}`);
+  } finally {
+    elements.exportSaveButton.disabled = false;
+  }
 }
 
 function normalizeImportedSave(raw) {
@@ -813,7 +932,7 @@ function normalizeBeadPiece(bead, piece, index) {
   item.type = bead.id;
   item.variant = bead.id === "bodhi-root" ? bodhiVariant : "default";
   item.patina = Math.max(0, Math.min(1, Number(item.patina ?? 0)));
-  item.imageUrl = item.imageUrl ?? bead.imageUrl;
+  item.imageUrl = normalizeStoredImageUrl(item.imageUrl ?? bead.imageUrl);
   item.isMain = Boolean(item.isMain);
   item.addedAt = item.addedAt ?? now;
   item.createdAt = item.createdAt ?? item.addedAt ?? now;
@@ -1562,12 +1681,34 @@ function spriteImportEndpoint() {
   return servedByLocalAi ? "/api/sprite-import" : "http://localhost:8080/api/sprite-import";
 }
 
+function resolveSpriteAssetUrl(assetPath) {
+  const value = String(assetPath || "");
+  if (!value || isImageDataUrl(value)) return value;
+  const endpoint = new URL(spriteImportEndpoint(), window.location.href);
+  return new URL(value, `${endpoint.origin}/`).href;
+}
+
+function resolveSpriteActionImages(actionImages = {}) {
+  return Object.fromEntries(
+    Object.entries(actionImages ?? {}).map(([action, imageUrl]) => [action, resolveSpriteAssetUrl(imageUrl)])
+  );
+}
+
 function readFileAsDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.addEventListener("load", () => resolve(String(reader.result ?? "")));
     reader.addEventListener("error", () => reject(reader.error ?? new Error("图片读取失败")));
     reader.readAsDataURL(file);
+  });
+}
+
+function readBlobAsDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("load", () => resolve(String(reader.result ?? "")));
+    reader.addEventListener("error", () => reject(reader.error ?? new Error("图片读取失败")));
+    reader.readAsDataURL(blob);
   });
 }
 
@@ -1618,10 +1759,11 @@ async function submitAiDesign(kind, event) {
     if (!response.ok) throw new Error(result.error || "Sprite 处理服务暂时不可用");
     if (!result.assetPath) throw new Error("Sprite 处理服务没有返回图片");
 
+    const assetPath = resolveSpriteAssetUrl(result.assetPath);
     if (kind === "cat") {
-      addAiCatDesign(name, note, result.assetPath, result.actionImages);
+      addAiCatDesign(name, note, assetPath, resolveSpriteActionImages(result.actionImages));
     } else {
-      addAiBeadDesign(name, note, result.assetPath);
+      addAiBeadDesign(name, note, assetPath);
     }
     form.form.reset();
     syncSpritePromptTexts();

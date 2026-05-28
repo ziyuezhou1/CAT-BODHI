@@ -707,9 +707,11 @@ async function serveStatic(req, res) {
     const info = await stat(diskPath);
     const filePath = info.isDirectory() ? path.join(diskPath, "index.html") : diskPath;
     const body = await readFile(filePath);
+    const isAiAsset = filePath.includes(`${path.sep}assets${path.sep}ai${path.sep}`);
     res.writeHead(200, {
       "Content-Type": MIME_TYPES[path.extname(filePath).toLowerCase()] || "application/octet-stream",
-      "Cache-Control": filePath.includes(`${path.sep}assets${path.sep}ai${path.sep}`) ? "no-cache" : "public, max-age=60",
+      "Cache-Control": isAiAsset ? "no-cache" : "public, max-age=60",
+      ...(isAiAsset ? { "Access-Control-Allow-Origin": "*" } : {}),
     });
     res.end(body);
   } catch {
