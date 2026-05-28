@@ -90,7 +90,7 @@ function sendJson(res, status, payload) {
     "Content-Type": "application/json; charset=utf-8",
     "Cache-Control": "no-store",
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
   });
   res.end(body);
@@ -99,7 +99,7 @@ function sendJson(res, status, payload) {
 function sendCorsPreflight(res) {
   res.writeHead(204, {
     "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
   });
@@ -137,6 +137,38 @@ function localNetworkUrls() {
     .flat()
     .filter((item) => item && !item.internal && (item.family === "IPv4" || item.family === 4))
     .map((item) => `http://${item.address}:${PORT}`);
+}
+
+async function pathExists(filePath) {
+  try {
+    await stat(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function spriteServiceStatus() {
+  const checks = [
+    ["model root", SPRITE_SEG_ROOT],
+    ["python", SPRITE_SEG_PYTHON],
+    ["checkpoint", SPRITE_SEG_CHECKPOINT],
+    ["processor", SPRITE_UPLOAD_PROCESSOR],
+  ];
+  const results = await Promise.all(checks.map(async ([label, filePath]) => ({
+    label,
+    path: filePath,
+    ok: await pathExists(filePath),
+  })));
+  const missing = results.filter((item) => !item.ok).map((item) => item.label);
+  return {
+    ready: missing.length === 0,
+    mode: "local-pytorch",
+    missing,
+    checks: results,
+    lanUrls: localNetworkUrls(),
+    port: PORT,
+  };
 }
 
 function fetchFailureSummary(error) {
@@ -701,6 +733,14 @@ async function handleSpriteImport(req, res) {
   }
 }
 
+async function handleSpriteStatus(req, res) {
+  try {
+    sendJson(res, 200, await spriteServiceStatus());
+  } catch (error) {
+    sendJson(res, 500, { error: error.message || "Sprite 服务状态读取失败" });
+  }
+}
+
 async function serveStatic(req, res) {
   const url = new URL(req.url || "/", `http://localhost:${PORT}`);
   const requested = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
@@ -729,7 +769,7 @@ async function serveStatic(req, res) {
 }
 
 createServer((req, res) => {
-  if (req.method === "OPTIONS" && (req.url?.startsWith("/api/ai-design") || req.url?.startsWith("/api/sprite-import"))) {
+  if (req.method === "OPTIONS" && (req.url?.startsWith("/api/ai-design") || req.url?.startsWith("/api/sprite-import") || req.url?.startsWith("/api/sprite-status"))) {
     sendCorsPreflight(res);
     return;
   }
@@ -739,6 +779,10 @@ createServer((req, res) => {
   }
   if (req.method === "POST" && req.url?.startsWith("/api/sprite-import")) {
     handleSpriteImport(req, res);
+    return;
+  }
+  if (req.method === "GET" && req.url?.startsWith("/api/sprite-status")) {
+    handleSpriteStatus(req, res);
     return;
   }
   if (req.method === "GET" || req.method === "HEAD") {

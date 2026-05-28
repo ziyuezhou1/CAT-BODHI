@@ -983,6 +983,18 @@ button:disabled.has-upgrade::after {
   white-space: pre-wrap;
 }
 
+.sprite-service-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 7px;
+}
+
+.sprite-service-row .ghost-button {
+  width: auto;
+  min-width: 64px;
+  min-height: 34px;
+}
+
 .ai-forge small {
   color: #684421;
   font-weight: 800;

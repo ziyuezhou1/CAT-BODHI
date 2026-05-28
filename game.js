@@ -1,4 +1,5 @@
 const SAVE_KEY = "cat-bead-idle-save-v1";
+const SPRITE_SERVICE_KEY = "cat-bodhi-sprite-service-url-v1";
 
 const bgmTracks = [
   "assets/audio/bodhi-cat-shop.mp3",
@@ -372,6 +373,9 @@ const elements = {
   catAiNote: $("#catAiNote"),
   catPromptButton: $("#catPromptButton"),
   catPromptText: $("#catPromptText"),
+  catSpriteServiceUrl: $("#catSpriteServiceUrl"),
+  catSpriteServiceCheck: $("#catSpriteServiceCheck"),
+  catSpriteServiceStatus: $("#catSpriteServiceStatus"),
   catAiPhoto: $("#catAiPhoto"),
   catAiButton: $("#catAiButton"),
   catAiStatus: $("#catAiStatus"),
@@ -380,6 +384,9 @@ const elements = {
   beadAiNote: $("#beadAiNote"),
   beadPromptButton: $("#beadPromptButton"),
   beadPromptText: $("#beadPromptText"),
+  beadSpriteServiceUrl: $("#beadSpriteServiceUrl"),
+  beadSpriteServiceCheck: $("#beadSpriteServiceCheck"),
+  beadSpriteServiceStatus: $("#beadSpriteServiceStatus"),
   beadAiPhoto: $("#beadAiPhoto"),
   beadAiButton: $("#beadAiButton"),
   beadAiStatus: $("#beadAiStatus"),
@@ -1592,6 +1599,9 @@ function aiFormElements(kind) {
       note: elements.catAiNote,
       promptButton: elements.catPromptButton,
       promptText: elements.catPromptText,
+      serviceUrl: elements.catSpriteServiceUrl,
+      serviceCheck: elements.catSpriteServiceCheck,
+      serviceStatus: elements.catSpriteServiceStatus,
       photo: elements.catAiPhoto,
       button: elements.catAiButton,
       status: elements.catAiStatus,
@@ -1602,6 +1612,9 @@ function aiFormElements(kind) {
       note: elements.beadAiNote,
       promptButton: elements.beadPromptButton,
       promptText: elements.beadPromptText,
+      serviceUrl: elements.beadSpriteServiceUrl,
+      serviceCheck: elements.beadSpriteServiceCheck,
+      serviceStatus: elements.beadSpriteServiceStatus,
       photo: elements.beadAiPhoto,
       button: elements.beadAiButton,
       status: elements.beadAiStatus,
@@ -1620,6 +1633,98 @@ function setAiStatus(kind, message, isError = false) {
   if (!status) return;
   status.textContent = message;
   status.style.color = isError ? "#9d2f22" : "#684421";
+}
+
+function setSpriteServiceStatus(message, isError = false) {
+  ["cat", "bead"].forEach((kind) => {
+    const { serviceStatus } = aiFormElements(kind);
+    if (!serviceStatus) return;
+    serviceStatus.textContent = message;
+    serviceStatus.style.color = isError ? "#9d2f22" : "#684421";
+  });
+}
+
+function normalizeSpriteServiceBase(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  const withProtocol = /^https?:\/\//i.test(raw) ? raw : `http://${raw}`;
+  try {
+    const url = new URL(withProtocol);
+    url.pathname = url.pathname.replace(/\/api\/(?:sprite-import|sprite-status)\/?$/i, "");
+    url.search = "";
+    url.hash = "";
+    return url.href.replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function sameOriginSpriteServiceBase() {
+  return /^https?:$/.test(window.location.protocol) && window.location.port === "8080"
+    ? window.location.origin
+    : "";
+}
+
+function savedSpriteServiceBase() {
+  return normalizeSpriteServiceBase(localStorage.getItem(SPRITE_SERVICE_KEY));
+}
+
+function spriteServiceBase() {
+  return sameOriginSpriteServiceBase() || savedSpriteServiceBase() || "http://localhost:8080";
+}
+
+function spriteServiceEndpoint(pathname) {
+  const sameOriginBase = sameOriginSpriteServiceBase();
+  if (sameOriginBase) return pathname;
+  return `${spriteServiceBase()}${pathname}`;
+}
+
+function syncSpriteServiceControls() {
+  const base = savedSpriteServiceBase() || sameOriginSpriteServiceBase() || "";
+  ["cat", "bead"].forEach((kind) => {
+    const { serviceUrl } = aiFormElements(kind);
+    if (serviceUrl) serviceUrl.value = base;
+  });
+}
+
+function saveSpriteServiceFromInput(kind) {
+  const value = normalizeSpriteServiceBase(aiFormElements(kind).serviceUrl?.value);
+  if (value) {
+    localStorage.setItem(SPRITE_SERVICE_KEY, value);
+  } else {
+    localStorage.removeItem(SPRITE_SERVICE_KEY);
+  }
+  syncSpriteServiceControls();
+  return value;
+}
+
+function spriteStatusMessage(status) {
+  if (!status || typeof status !== "object") return "服务响应格式不正确";
+  if (status.ready) return "深度学习服务已连接";
+  const missing = Array.isArray(status.missing) ? status.missing.join("、") : "";
+  return missing ? `服务已启动，但缺少 ${missing}` : "服务已启动，但模型未就绪";
+}
+
+async function checkSpriteService(kind = "cat", announce = true) {
+  const form = aiFormElements(kind);
+  form.serviceCheck.disabled = true;
+  const base = saveSpriteServiceFromInput(kind);
+  try {
+    const response = await fetch(spriteServiceEndpoint("/api/sprite-status"), { cache: "no-store" });
+    const status = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(status.error || "服务不可用");
+    const message = spriteStatusMessage(status);
+    setSpriteServiceStatus(base ? `${message}：${base}` : message, !status.ready);
+    if (announce) toast(message);
+    return status.ready;
+  } catch {
+    const target = base || spriteServiceBase();
+    setSpriteServiceStatus(`无法连接深度学习服务：${target}`, true);
+    if (announce) toast("深度学习服务未连接");
+    return false;
+  } finally {
+    form.serviceCheck.disabled = false;
+  }
 }
 
 function formatFileSize(bytes) {
@@ -1673,14 +1778,15 @@ function spriteImportErrorMessage(error) {
     if (window.location.port === "8080") {
       return "无法连接本地 sprite 处理服务。请确认电脑上的 npm run dev:ai 仍在运行，手机和电脑在同一 Wi-Fi，且防火墙允许 Node.js 访问。";
     }
+    const configured = savedSpriteServiceBase();
+    if (configured) return `无法连接深度学习服务：${configured}。请确认服务已启动、地址可访问；GitHub Pages 调用 HTTP 局域网地址可能会被浏览器拦截。`;
     return "无法连接本地 sprite 处理服务。电脑端可运行 npm run dev:ai 后打开 http://localhost:8080；手机端请打开服务启动日志里的 http://电脑局域网IP:8080，不要从 GitHub Pages 直接调用。";
   }
   return `${message}。请确认已用本地服务打开页面，并且 D:\\sprite_alpha_seg_pytorch 的模型环境可用。`;
 }
 
 function spriteImportEndpoint() {
-  const servedByLocalAi = /^https?:$/.test(window.location.protocol) && window.location.port === "8080";
-  return servedByLocalAi ? "/api/sprite-import" : "http://localhost:8080/api/sprite-import";
+  return spriteServiceEndpoint("/api/sprite-import");
 }
 
 function resolveSpriteAssetUrl(assetPath) {
@@ -1734,6 +1840,7 @@ async function submitAiDesign(kind, event) {
   }
 
   form.button.disabled = true;
+  saveSpriteServiceFromInput(kind);
   setAiStatus(kind, "正在调用本地深度学习模型抠背景、裁切并整理为游戏 sprite...");
   try {
     const imageDataUrl = await readFileAsDataUrl(file);
@@ -2863,6 +2970,10 @@ function bindEvents() {
   elements.beadAiForm?.addEventListener("submit", (event) => submitAiDesign("bead", event));
   elements.catPromptButton?.addEventListener("click", () => copySpritePrompt("cat"));
   elements.beadPromptButton?.addEventListener("click", () => copySpritePrompt("bead"));
+  elements.catSpriteServiceCheck?.addEventListener("click", () => checkSpriteService("cat"));
+  elements.beadSpriteServiceCheck?.addEventListener("click", () => checkSpriteService("bead"));
+  elements.catSpriteServiceUrl?.addEventListener("change", () => saveSpriteServiceFromInput("cat"));
+  elements.beadSpriteServiceUrl?.addEventListener("change", () => saveSpriteServiceFromInput("bead"));
   elements.catAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("cat"));
   elements.beadAiPhoto?.addEventListener("change", () => syncAiPhotoUploadStatus("bead"));
   elements.catGroupCloseButton.addEventListener("click", closeCatGroupPanel);
@@ -2975,6 +3086,7 @@ function switchTab(tab) {
 
 bindEvents();
 syncSpritePromptTexts();
+syncSpriteServiceControls();
 render();
 syncBgmButton();
 saveState();

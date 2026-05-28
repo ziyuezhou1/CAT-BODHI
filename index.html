@@ -115,6 +115,11 @@
               <button class="shop-button secondary sprite-prompt-button" id="catPromptButton" type="button">复制猫猫提示词</button>
               <textarea class="sprite-prompt-text" id="catPromptText" rows="5" readonly aria-label="猫猫 sprite 生图提示词"></textarea>
               <small>去千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上现实猫照；生成纯绿色背景的三动作 sprite 后回到这里上传。</small>
+              <div class="sprite-service-row">
+                <input id="catSpriteServiceUrl" type="url" inputmode="url" autocomplete="off" placeholder="抠图服务地址" />
+                <button class="ghost-button" id="catSpriteServiceCheck" type="button">检测</button>
+              </div>
+              <small id="catSpriteServiceStatus">本机服务或云端服务均可</small>
               <input id="catAiName" name="name" type="text" maxlength="18" placeholder="猫猫名字" required />
               <textarea id="catAiNote" name="note" rows="2" placeholder="入档备注，例如：左脸橘色斑纹"></textarea>
               <label class="file-pick">
@@ -137,6 +142,11 @@
               <button class="shop-button secondary sprite-prompt-button" id="beadPromptButton" type="button">复制手串提示词</button>
               <textarea class="sprite-prompt-text" id="beadPromptText" rows="5" readonly aria-label="文玩手串 sprite 生图提示词"></textarea>
               <small>去千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上自己的现实文玩照片；生成 sprite 后回到这里上传。</small>
+              <div class="sprite-service-row">
+                <input id="beadSpriteServiceUrl" type="url" inputmode="url" autocomplete="off" placeholder="抠图服务地址" />
+                <button class="ghost-button" id="beadSpriteServiceCheck" type="button">检测</button>
+              </div>
+              <small id="beadSpriteServiceStatus">本机服务或云端服务均可</small>
               <input id="beadAiName" name="name" type="text" maxlength="18" placeholder="手串名字" required />
               <textarea id="beadAiNote" name="note" rows="2" placeholder="入档备注，例如：星月孔道明显"></textarea>
               <label class="file-pick">
@@ -217,6 +227,6 @@
       </section>
     </div>
 
-    <script src="game.js?v=14"></script>
+    <script src="game.js?v=15"></script>
   </body>
 </html>
