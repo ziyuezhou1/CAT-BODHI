@@ -1667,7 +1667,15 @@ function sameOriginSpriteServiceBase() {
 }
 
 function savedSpriteServiceBase() {
-  return normalizeSpriteServiceBase(localStorage.getItem(SPRITE_SERVICE_KEY));
+  const base = normalizeSpriteServiceBase(localStorage.getItem(SPRITE_SERVICE_KEY));
+  if (!base || sameOriginSpriteServiceBase()) return base;
+  try {
+    const url = new URL(base);
+    if ((url.hostname === "localhost" || url.hostname === "127.0.0.1") && url.port === "8080") return "";
+  } catch {
+    return "";
+  }
+  return base;
 }
 
 function spriteServiceBase() {
