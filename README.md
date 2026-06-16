@@ -105,12 +105,12 @@ python -m http.server 8080
 
 ### AI 形象工坊
 
-猫缘页和珠阶页现在使用“外部模型生成 + 本地抠图切割”的流程：
+猫缘页和珠阶页现在使用“外部模型生成 + 深度学习抠图切割”的流程：
 
 1. 在游戏里点击“复制猫猫提示词”或“复制手串提示词”。
 2. 到自己的千问、豆包、OpenAI、Gemini 等模型中粘贴提示词，并附上现实猫照或文玩照片。猫猫请生成纯绿色背景的横向三动作 sprite sheet；文玩/珠串也请生成纯绿色背景。
 3. 把外部模型生成的 sprite 图片上传回游戏，填写名字。
-4. 本地 Node 服务会调用 `D:\sprite_alpha_seg_pytorch` 的 PyTorch 分割模型，把结果写到 `D:\sprite_alpha_seg_pytorch\outputs\cat_match\<任务名>`，再复制处理后的 PNG 到 `assets/ai/cats` 或 `assets/ai/beads` 并加入存档。
+4. 游戏默认调用 `https://cat-bodhi.xiteng.site` 的 PyTorch 分割服务；也可以在“抠图服务地址”中改成本机或其他云端服务。服务会把处理后的 PNG 加入猫缘或珠串存档。
 
 启动本地服务：
 
@@ -124,7 +124,7 @@ Windows 也可以双击 `start-local-ai.bat` 启动本地深度学习服务。
 
 手机上使用本地抠图切割：电脑和手机连同一个 Wi-Fi，先在电脑运行 `npm run dev:ai`，然后看终端打印的 `Phone/LAN URL`，在手机浏览器或微信里打开类似 `http://192.168.1.23:8080` 的地址。不要用 GitHub Pages 页面直接调用本地模型，因为手机里的 `localhost` 指的是手机自己，HTTPS 页面也通常不能调用局域网 HTTP 服务。
 
-如果模型部署到云服务器，服务只要兼容 `/api/sprite-status` 与 `/api/sprite-import`，就可以在游戏里的“抠图服务地址”填入 HTTPS 地址后检测并调用。
+云端默认服务地址是 `https://cat-bodhi.xiteng.site`。如果模型部署到其他云服务器，服务只要兼容 `/api/sprite-status` 与 `/api/sprite-import`，就可以在游戏里的“抠图服务地址”填入 HTTPS 地址后检测并调用。
 
 默认模型路径：
 

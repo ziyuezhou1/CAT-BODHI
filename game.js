@@ -1,5 +1,6 @@
 const SAVE_KEY = "cat-bead-idle-save-v1";
 const SPRITE_SERVICE_KEY = "cat-bodhi-sprite-service-url-v1";
+const DEFAULT_SPRITE_SERVICE_BASE = "https://cat-bodhi.xiteng.site";
 
 const bgmTracks = [
   "assets/audio/bodhi-cat-shop.mp3",
@@ -482,7 +483,7 @@ function normalizeStoredImageUrl(value) {
   const path = url.replace(/^\.\//, "");
   const pageHost = globalThis.window?.location?.hostname ?? "";
   const remotePage = pageHost && pageHost !== "localhost" && pageHost !== "127.0.0.1";
-  if (remotePage && path.startsWith("assets/ai/")) return `http://localhost:8080/${path}`;
+  if (remotePage && path.startsWith("assets/ai/")) return `${spriteServiceBase()}/${path}`;
   return url;
 }
 
@@ -1670,7 +1671,7 @@ function savedSpriteServiceBase() {
 }
 
 function spriteServiceBase() {
-  return sameOriginSpriteServiceBase() || savedSpriteServiceBase() || "http://localhost:8080";
+  return sameOriginSpriteServiceBase() || savedSpriteServiceBase() || DEFAULT_SPRITE_SERVICE_BASE;
 }
 
 function spriteServiceEndpoint(pathname) {
@@ -1680,7 +1681,7 @@ function spriteServiceEndpoint(pathname) {
 }
 
 function syncSpriteServiceControls() {
-  const base = savedSpriteServiceBase() || sameOriginSpriteServiceBase() || "";
+  const base = savedSpriteServiceBase() || sameOriginSpriteServiceBase() || DEFAULT_SPRITE_SERVICE_BASE;
   ["cat", "bead"].forEach((kind) => {
     const { serviceUrl } = aiFormElements(kind);
     if (serviceUrl) serviceUrl.value = base;
@@ -1780,7 +1781,7 @@ function spriteImportErrorMessage(error) {
     }
     const configured = savedSpriteServiceBase();
     if (configured) return `无法连接深度学习服务：${configured}。请确认服务已启动、地址可访问；GitHub Pages 调用 HTTP 局域网地址可能会被浏览器拦截。`;
-    return "无法连接本地 sprite 处理服务。电脑端可运行 npm run dev:ai 后打开 http://localhost:8080；手机端请打开服务启动日志里的 http://电脑局域网IP:8080，不要从 GitHub Pages 直接调用。";
+    return `无法连接深度学习服务：${DEFAULT_SPRITE_SERVICE_BASE}。也可以在电脑端运行 npm run dev:ai 后打开 http://localhost:8080，或在手机端填写服务启动日志里的 http://电脑局域网IP:8080。`;
   }
   return `${message}。请确认已用本地服务打开页面，并且 D:\\sprite_alpha_seg_pytorch 的模型环境可用。`;
 }
