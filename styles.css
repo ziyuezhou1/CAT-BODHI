@@ -1075,6 +1075,36 @@ button:disabled.has-upgrade::after {
   font-weight: 800;
 }
 
+.card-delete-button {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 2;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #643316;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #fff1c7 0%, #ee8f59 100%);
+  box-shadow: inset 0 -3px 0 rgba(82, 41, 18, 0.2), 0 2px 0 rgba(82, 41, 18, 0.18);
+  color: #5a2a14;
+  font-size: 1.2rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.card-delete-button:hover {
+  filter: brightness(1.05);
+}
+
+.card-delete-button:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 -2px 0 rgba(82, 41, 18, 0.22);
+}
+
 .shop-button {
   width: 100%;
   min-height: 36px;

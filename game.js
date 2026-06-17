@@ -1592,6 +1592,55 @@ function addBead(beadId) {
   render();
 }
 
+function deleteCustomCat(catId) {
+  const customCats = normalizeCustomCats(state.customCats ?? []);
+  const cat = customCats.find((item) => item.id === catId);
+  if (!cat) return;
+  const count = state.catCounts?.[cat.id] ?? 0;
+  if (!confirm(`删除自定义猫咪「${cat.name}」？这会移除它的数量、状态和场景摆放。`)) return;
+
+  state.customCats = customCats.filter((item) => item.id !== cat.id);
+  delete state.catCounts[cat.id];
+  delete state.catMood[cat.id];
+  delete state.catSatiety[cat.id];
+  Object.keys(state.catPlacements ?? {}).forEach((key) => {
+    if (key.startsWith(`${cat.id}:`)) delete state.catPlacements[key];
+  });
+  Array.from(catVisualState.keys()).forEach((key) => {
+    if (key.startsWith(`${cat.id}:`)) catVisualState.delete(key);
+  });
+  if (catDragState.key.startsWith(`${cat.id}:`)) {
+    catDragState.active = false;
+    catDragState.pointerId = null;
+    catDragState.element = null;
+    catDragState.key = "";
+  }
+  closeCatGroupPanel();
+  saveState();
+  render();
+  toast(`已删除${cat.name}${count > 1 ? ` x${count}` : ""}`);
+}
+
+function deleteCustomBead(beadId) {
+  const customBeads = normalizeCustomBeads(state.customBeads ?? []);
+  const bead = customBeads.find((item) => item.id === beadId);
+  if (!bead) return;
+  ensureBeadCollections(state);
+  const removedPieceIds = new Set((state.beadCollections?.[bead.id] ?? []).map((piece) => piece.id));
+  const count = removedPieceIds.size;
+  if (!confirm(`删除自定义珠串「${bead.name}」？这会移除该珠阶下的 ${count || 0} 串收藏。`)) return;
+
+  state.customBeads = customBeads.filter((item) => item.id !== bead.id);
+  if (state.beadCollections) delete state.beadCollections[bead.id];
+  if (state.selectedBead === bead.id) state.selectedBead = "bodhi-root";
+  if (removedPieceIds.has(state.mainBraceletId)) state.mainBraceletId = "";
+  ensureBeadCollections(state);
+  ensureMainBracelet(state);
+  saveState();
+  render();
+  toast(`已删除${bead.name}`);
+}
+
 function aiFormElements(kind) {
   return kind === "cat"
     ? {
@@ -2526,8 +2575,12 @@ function renderShop() {
       const unlocked = state.totalZen >= cat.unlock;
       const cost = catCost(cat);
       const canBuy = unlocked && state.zen >= cost;
+      const deleteButton = cat.custom
+        ? `<button class="card-delete-button" type="button" data-delete-custom-cat="${cat.id}" aria-label="删除${escapeHtml(cat.name)}">×</button>`
+        : "";
       return `
         <article class="shop-card ${unlocked ? "" : "locked"} ${canBuy ? "has-upgrade" : ""}" data-cat-card="${cat.id}">
+          ${deleteButton}
           <span class="sprite ${cat.sprite}"${spriteInlineStyle(catActionImage(cat, "sit"))} aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
@@ -2562,8 +2615,12 @@ function renderBeads() {
       const cost = beadPieceCost(bead);
       const canAdd = canAddBead(bead);
       const imagePiece = piece ?? { variant: bead.id === "bodhi-root" ? "pure" : "default", patina: 0 };
+      const deleteButton = bead.custom
+        ? `<button class="card-delete-button" type="button" data-delete-custom-bead="${bead.id}" aria-label="删除${escapeHtml(bead.name)}">×</button>`
+        : "";
       return `
         <article class="bead-card ${unlocked ? "" : "locked"} ${active ? "active-bead" : ""} ${canAdd ? "has-upgrade" : ""}" data-bead-card="${bead.id}">
+          ${deleteButton}
           <span class="bracelet-sprite ${bead.sprite}" style="${braceletImageStyle(bead, imagePiece)}" aria-hidden="true"></span>
           <div class="card-copy">
             <div class="card-title">
@@ -3015,6 +3072,18 @@ function bindEvents() {
       openCatGroupPanel(stageCat.dataset.cat);
       catActionTimer = 0;
       catActionDelay = randomCatActionDelay();
+      return;
+    }
+
+    const deleteCatButton = event.target.closest("[data-delete-custom-cat]");
+    if (deleteCatButton) {
+      deleteCustomCat(deleteCatButton.dataset.deleteCustomCat);
+      return;
+    }
+
+    const deleteBeadButton = event.target.closest("[data-delete-custom-bead]");
+    if (deleteBeadButton) {
+      deleteCustomBead(deleteBeadButton.dataset.deleteCustomBead);
       return;
     }
 
