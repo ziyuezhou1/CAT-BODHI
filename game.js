@@ -197,6 +197,27 @@ const pawTalents = [
   { id: "diaryLuck", name: "日记福气", description: "全部收益 +8%/级", cost: 2, costScale: 1.8, maxLevel: 6, effect: "allMult", value: 0.08 },
 ];
 
+const gameThemes = [
+  {
+    id: "classic",
+    className: "theme-classic",
+    name: "经典猫猫小屋",
+    description: "原本的暖色像素小屋界面，适合保持轻量清爽的日常盘珠。",
+    unlockText: "默认拥有",
+    unlockValue: () => 1,
+    unlockGoal: 0,
+  },
+  {
+    id: "bodhi-shop",
+    className: "theme-bodhi-shop",
+    name: "深夜文玩小铺",
+    description: "木质柜台、账本木牌、青绿色灵光与暖金奖励构成的像素文玩铺主题。",
+    unlockText: "累计一万禅意解锁",
+    unlockValue: (s) => s.totalZen,
+    unlockGoal: 10000,
+  },
+];
+
 function makeBeadPiece(beadId, variant = "default", patina = 0) {
   const now = Date.now();
   return {
@@ -239,6 +260,8 @@ const defaultState = () => {
     decorationLevels: Object.fromEntries(decorations.map((decor) => [decor.id, 0])),
     pawTalentLevels: Object.fromEntries(pawTalents.map((talent) => [talent.id, 0])),
     claimedWishes: {},
+    unlockedThemes: ["classic"],
+    activeTheme: "classic",
     paws: 0,
     taps: 0,
     bgmEnabled: true,
@@ -551,6 +574,34 @@ function catActionImage(cat, action = "sit") {
   return cat?.actionImages?.[actionKey] || cat?.imageUrl || "";
 }
 
+function themeById(themeId) {
+  return gameThemes.find((theme) => theme.id === themeId) ?? gameThemes[0];
+}
+
+function themeUnlocked(theme, current = state) {
+  return (current.unlockedThemes ?? []).includes(theme.id);
+}
+
+function themeUnlockReady(theme, current = state) {
+  if (theme.unlockGoal <= 0) return true;
+  return theme.unlockValue(current) >= theme.unlockGoal;
+}
+
+function normalizeUnlockedThemes(unlockedThemes = [], current = defaultState()) {
+  const ids = new Set(["classic"]);
+  unlockedThemes.forEach((themeId) => {
+    if (gameThemes.some((theme) => theme.id === themeId)) ids.add(themeId);
+  });
+  gameThemes.forEach((theme) => {
+    if (theme.unlockGoal <= 0 || (ids.has(theme.id) && themeUnlockReady(theme, current))) ids.add(theme.id);
+  });
+  return [...ids];
+}
+
+function normalizeActiveTheme(themeId, unlockedThemes = ["classic"]) {
+  return gameThemes.some((theme) => theme.id === themeId) && unlockedThemes.includes(themeId) ? themeId : "classic";
+}
+
 function loadState() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
@@ -569,6 +620,8 @@ function loadState() {
     merged.decorationLevels = { ...defaultState().decorationLevels, ...(saved?.decorationLevels ?? {}) };
     merged.pawTalentLevels = { ...defaultState().pawTalentLevels, ...(saved?.pawTalentLevels ?? {}) };
     merged.claimedWishes = { ...(saved?.claimedWishes ?? {}) };
+    merged.unlockedThemes = normalizeUnlockedThemes(saved?.unlockedThemes ?? ["classic"], merged);
+    merged.activeTheme = normalizeActiveTheme(saved?.activeTheme, merged.unlockedThemes);
     if (saved?.balanceVersion !== BALANCE.version || !Number.isFinite(saved?.upgradePaceStep)) {
       merged.upgradePaceStep = estimateUpgradePaceStep(merged);
       merged.balanceVersion = BALANCE.version;
@@ -817,6 +870,8 @@ function normalizeImportedSave(raw) {
   merged.catSatiety = { ...Object.fromEntries(allCats(merged).map((cat) => [cat.id, 100])), ...(imported.catSatiety ?? {}) };
   merged.decorationLevels = { ...base.decorationLevels, ...(imported.decorationLevels ?? {}) };
   merged.pawTalentLevels = { ...base.pawTalentLevels, ...(imported.pawTalentLevels ?? {}) };
+  merged.unlockedThemes = normalizeUnlockedThemes(imported.unlockedThemes ?? ["classic"], merged);
+  merged.activeTheme = normalizeActiveTheme(imported.activeTheme, merged.unlockedThemes);
   merged.beadCollections = { ...starterBeadCollections(), ...(imported.beadCollections ?? {}) };
   ensureBeadCollections(merged);
   ensureMainBracelet(merged);
@@ -836,6 +891,7 @@ async function importSaveFile(file) {
     state = nextState;
     catVisualState.clear();
     closeCatGroupPanel();
+    applyTheme();
     saveState();
     render();
     syncBgmButton();
@@ -851,6 +907,38 @@ function syncBgmButton() {
   elements.bgmButton.classList.toggle("off", !state.bgmEnabled);
   elements.bgmButton.setAttribute("aria-pressed", String(state.bgmEnabled));
   elements.bgmLabel.textContent = state.bgmEnabled ? (bgmStarted ? "音乐开" : "音乐待启") : "音乐关";
+}
+
+function applyTheme() {
+  gameThemes.forEach((theme) => document.body.classList.remove(theme.className));
+  const theme = themeById(state.activeTheme);
+  document.body.classList.add(theme.className);
+  document.body.dataset.theme = theme.id;
+}
+
+function unlockTheme(themeId) {
+  const theme = themeById(themeId);
+  if (themeUnlocked(theme)) {
+    selectTheme(theme.id);
+    return;
+  }
+  if (!themeUnlockReady(theme)) return;
+  state.unlockedThemes = normalizeUnlockedThemes([...(state.unlockedThemes ?? []), theme.id], state);
+  state.activeTheme = theme.id;
+  applyTheme();
+  saveState();
+  render();
+  toast(`已解锁主题「${theme.name}」`);
+}
+
+function selectTheme(themeId) {
+  const theme = themeById(themeId);
+  if (!themeUnlocked(theme)) return;
+  state.activeTheme = theme.id;
+  applyTheme();
+  saveState();
+  render();
+  toast(`已切换主题「${theme.name}」`);
 }
 
 function loadBgmTrack(index) {
@@ -2680,6 +2768,32 @@ function renderDecorations() {
 }
 
 function renderWishes() {
+  const themeCards = gameThemes
+    .map((theme) => {
+      const unlocked = themeUnlocked(theme);
+      const active = state.activeTheme === theme.id;
+      const progressValue = theme.unlockGoal > 0 ? theme.unlockValue(state) : 1;
+      const progress = theme.unlockGoal > 0 ? Math.min(1, progressValue / theme.unlockGoal) : 1;
+      const ready = !unlocked && themeUnlockReady(theme);
+      return `
+        <article class="paw-talent-card theme-card ${active ? "active-theme" : ""} ${ready ? "has-upgrade" : ""}" data-theme-card="${theme.id}">
+          <div class="card-title">
+            <span>${theme.name}</span>
+            <span data-theme-state="${theme.id}">${active ? "使用中" : unlocked ? "已解锁" : "未解锁"}</span>
+          </div>
+          <div class="card-meta">
+            <span>${theme.description}</span>
+            <span data-theme-unlock="${theme.id}">${theme.unlockText}</span>
+          </div>
+          <div class="wish-progress" aria-hidden="true"><span data-theme-progress="${theme.id}" style="width:${progress * 100}%"></span></div>
+          <button class="shop-button ${ready || unlocked && !active ? "has-upgrade" : "secondary"}" type="button" data-theme-action="${theme.id}" ${active || (!unlocked && !ready) ? "disabled" : ""}>
+            ${active ? "使用中" : unlocked ? "启用主题" : ready ? "解锁主题" : "条件未达成"}
+          </button>
+        </article>
+      `;
+    })
+    .join("");
+
   const talentCards = pawTalents
     .map((talent) => {
       const level = pawTalentLevel(talent);
@@ -2729,6 +2843,16 @@ function renderWishes() {
     .join("");
 
   elements.wishList.innerHTML = `
+    <section class="paw-panel theme-panel">
+      <div class="card-title">
+        <span>主题收藏</span>
+        <span>${themeById(state.activeTheme).name}</span>
+      </div>
+      <div class="card-meta">
+        <span>主题只改变界面外观，不改变收益、猫咪、珠串和存档规则。</span>
+      </div>
+      <div class="paw-talent-grid">${themeCards}</div>
+    </section>
     <section class="paw-panel">
       <div class="card-title">
         <span>福爪修行</span>
@@ -2766,12 +2890,16 @@ function hasWishUpgrade(current = state) {
     pawTalents.some((talent) => pawTalentLevel(talent, current) < talent.maxLevel && current.paws >= pawTalentCost(talent, current));
 }
 
+function hasThemeUpgrade(current = state) {
+  return gameThemes.some((theme) => !themeUnlocked(theme, current) && themeUnlockReady(theme, current));
+}
+
 function updateUpgradeBadges() {
   const tabState = {
     cats: hasCatUpgrade(),
     beads: hasBeadUpgrade(),
     decor: hasDecorUpgrade(),
-    wishes: hasWishUpgrade(),
+    wishes: hasWishUpgrade() || hasThemeUpgrade(),
   };
   document.querySelectorAll("[data-tab]").forEach((button) => {
     button.classList.toggle("has-upgrade", Boolean(tabState[button.dataset.tab]));
@@ -2907,6 +3035,29 @@ function updatePanelState() {
       button.disabled = !canBuy;
       button.classList.toggle("has-upgrade", canBuy);
       button.textContent = capped ? "已满级" : "使用福爪";
+    }
+  });
+
+  gameThemes.forEach((theme) => {
+    const unlocked = themeUnlocked(theme);
+    const active = state.activeTheme === theme.id;
+    const progressValue = theme.unlockGoal > 0 ? theme.unlockValue(state) : 1;
+    const progress = theme.unlockGoal > 0 ? Math.min(1, progressValue / theme.unlockGoal) : 1;
+    const ready = !unlocked && themeUnlockReady(theme);
+    const card = elements.wishList.querySelector(`[data-theme-card="${theme.id}"]`);
+    const stateLabel = elements.wishList.querySelector(`[data-theme-state="${theme.id}"]`);
+    const progressBar = elements.wishList.querySelector(`[data-theme-progress="${theme.id}"]`);
+    const button = elements.wishList.querySelector(`[data-theme-action="${theme.id}"]`);
+
+    card?.classList.toggle("active-theme", active);
+    card?.classList.toggle("has-upgrade", ready || (unlocked && !active));
+    if (stateLabel) stateLabel.textContent = active ? "使用中" : unlocked ? "已解锁" : "未解锁";
+    if (progressBar) progressBar.style.width = `${progress * 100}%`;
+    if (button) {
+      button.disabled = active || (!unlocked && !ready);
+      button.classList.toggle("secondary", active || (!unlocked && !ready));
+      button.classList.toggle("has-upgrade", ready || (unlocked && !active));
+      button.textContent = active ? "使用中" : unlocked ? "启用主题" : ready ? "解锁主题" : "条件未达成";
     }
   });
 
@@ -3105,6 +3256,14 @@ function bindEvents() {
     const pawTalentButton = event.target.closest("[data-upgrade-paw-talent]");
     if (pawTalentButton) upgradePawTalent(pawTalentButton.dataset.upgradePawTalent);
 
+    const themeButton = event.target.closest("[data-theme-action]");
+    if (themeButton) {
+      const theme = themeById(themeButton.dataset.themeAction);
+      if (themeUnlocked(theme)) selectTheme(theme.id);
+      else unlockTheme(theme.id);
+      return;
+    }
+
     const prestigeButton = event.target.closest("button[data-prestige-paws]");
     if (prestigeButton) prestigeForPaws();
 
@@ -3139,6 +3298,7 @@ function bindEvents() {
     if (!confirm("清除当前猫猫盘珠日记存档？")) return;
     localStorage.removeItem(SAVE_KEY);
     state = defaultState();
+    applyTheme();
     saveState();
     toast("存档已清除");
     render();
@@ -3165,6 +3325,7 @@ function switchTab(tab) {
 bindEvents();
 syncSpritePromptTexts();
 syncSpriteServiceControls();
+applyTheme();
 render();
 syncBgmButton();
 saveState();

@@ -1883,7 +1883,7 @@ button:disabled.has-upgrade::after {
 }
 
 /* Pixel Bodhi Shop v0: deep-night curio shop UI */
-:root {
+body.theme-bodhi-shop {
   --ink: #2a1710;
   --outline: #3b1d10;
   --outline-soft: #6b3a1f;
@@ -1908,12 +1908,11 @@ button:disabled.has-upgrade::after {
   font-family: var(--shop-font);
 }
 
-html,
-body {
+body.theme-bodhi-shop {
   background-color: #241208;
 }
 
-body {
+body.theme-bodhi-shop {
   color: var(--ink);
   background:
     linear-gradient(180deg, rgba(18, 48, 71, 0.48) 0 15%, transparent 15%),
@@ -1921,7 +1920,7 @@ body {
     linear-gradient(180deg, #5e351c 0 16%, #7b4824 16% 68%, #4b2815 68% 100%);
 }
 
-body::before {
+body.theme-bodhi-shop::before {
   content: "";
   position: fixed;
   inset: 0;
@@ -1934,25 +1933,25 @@ body::before {
   image-rendering: pixelated;
 }
 
-img,
-.sprite,
-.ui-icon,
-.cat-art,
-.station-art,
-.bracelet-sprite,
-.decor-sprite {
+body.theme-bodhi-shop img,
+body.theme-bodhi-shop .sprite,
+body.theme-bodhi-shop .ui-icon,
+body.theme-bodhi-shop .cat-art,
+body.theme-bodhi-shop .station-art,
+body.theme-bodhi-shop .bracelet-sprite,
+body.theme-bodhi-shop .decor-sprite {
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }
 
-button,
-input,
-textarea,
-select {
+body.theme-bodhi-shop button,
+body.theme-bodhi-shop input,
+body.theme-bodhi-shop textarea,
+body.theme-bodhi-shop select {
   font-family: var(--shop-font);
 }
 
-.game-shell {
+body.theme-bodhi-shop .game-shell {
   width: min(1460px, 100%);
   padding: clamp(8px, 1.2vw, 16px);
   gap: clamp(8px, 1.25vh, 14px);
@@ -1961,7 +1960,7 @@ select {
     repeating-linear-gradient(90deg, rgba(31, 17, 9, 0.2) 0 4px, transparent 4px 52px);
 }
 
-.pixel-panel {
+body.theme-bodhi-shop .pixel-panel {
   border-color: var(--outline);
   border-radius: 4px;
   background:
@@ -1973,12 +1972,12 @@ select {
     0 16px 28px var(--shadow);
 }
 
-.pixel-panel::before {
+body.theme-bodhi-shop .pixel-panel::before {
   opacity: 0.24;
   filter: sepia(0.55) saturate(1.25);
 }
 
-.pixel-panel::after {
+body.theme-bodhi-shop .pixel-panel::after {
   height: 6px;
   left: 12px;
   right: 12px;
@@ -1989,7 +1988,7 @@ select {
     repeating-linear-gradient(90deg, rgba(73, 191, 147, 0.26) 0 10px, rgba(246, 194, 92, 0.22) 10px 18px, transparent 18px 28px);
 }
 
-.topbar {
+body.theme-bodhi-shop .topbar {
   min-height: clamp(76px, 10vh, 112px);
   grid-template-columns: minmax(0, 1fr);
   padding: 10px 14px 12px;
@@ -2000,7 +1999,7 @@ select {
     linear-gradient(180deg, #b67439 0%, #8a4e26 58%, #613119 100%);
 }
 
-.topbar::before {
+body.theme-bodhi-shop .topbar::before {
   width: 100%;
   height: 14px;
   inset: 8px 0 auto;
@@ -2009,7 +2008,7 @@ select {
     repeating-linear-gradient(90deg, var(--outline) 0 28px, #bf8a49 28px 35px, var(--outline) 35px 64px);
 }
 
-.topbar::after {
+body.theme-bodhi-shop .topbar::after {
   height: 9px;
   left: 18px;
   right: 18px;
@@ -2020,13 +2019,13 @@ select {
     linear-gradient(180deg, rgba(255, 247, 216, 0.12), transparent);
 }
 
-.brand-lockup {
+body.theme-bodhi-shop .brand-lockup {
   position: relative;
   z-index: 1;
   gap: 10px;
 }
 
-.brand-title-stack {
+body.theme-bodhi-shop .brand-title-stack {
   padding: 4px 12px 6px;
   border: 3px solid rgba(59, 29, 16, 0.76);
   background:
@@ -2035,7 +2034,7 @@ select {
   box-shadow: inset 0 -4px 0 rgba(59, 29, 16, 0.18), 0 3px 0 rgba(31, 17, 9, 0.28);
 }
 
-.game-logo {
+body.theme-bodhi-shop .game-logo {
   max-height: clamp(56px, 7.5vh, 82px);
   filter:
     drop-shadow(2px 0 0 var(--outline))
@@ -2043,7 +2042,7 @@ select {
     drop-shadow(0 3px 0 rgba(31, 17, 9, 0.34));
 }
 
-.brand-lockup p {
+body.theme-bodhi-shop .brand-lockup p {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2060,7 +2059,7 @@ select {
   box-shadow: 0 2px 0 rgba(31, 17, 9, 0.22);
 }
 
-.brand-lockup p::before {
+body.theme-bodhi-shop .brand-lockup p::before {
   content: "";
   width: 8px;
   height: 8px;
@@ -2070,13 +2069,13 @@ select {
   box-shadow: 0 0 0 2px rgba(73, 191, 147, 0.12);
 }
 
-.audio-button,
-.guide-button,
-.ghost-button,
-.primary-action,
-.soft-action,
-.shop-button,
-.tab-button {
+body.theme-bodhi-shop .audio-button,
+body.theme-bodhi-shop .guide-button,
+body.theme-bodhi-shop .ghost-button,
+body.theme-bodhi-shop .primary-action,
+body.theme-bodhi-shop .soft-action,
+body.theme-bodhi-shop .shop-button,
+body.theme-bodhi-shop .tab-button {
   border-color: var(--outline);
   border-radius: 3px;
   letter-spacing: 0;
@@ -2084,59 +2083,59 @@ select {
   transition: transform 120ms steps(2, end), filter 120ms steps(2, end), box-shadow 120ms steps(2, end);
 }
 
-.audio-button,
-.guide-button,
-.ghost-button {
+body.theme-bodhi-shop .audio-button,
+body.theme-bodhi-shop .guide-button,
+body.theme-bodhi-shop .ghost-button {
   color: var(--paper-soft);
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.1) 0 3px, transparent 3px 14px),
     linear-gradient(180deg, #6f4525 0%, #452314 100%);
 }
 
-.audio-button:hover,
-.guide-button:hover,
-.ghost-button:hover,
-.primary-action:hover,
-.soft-action:hover,
-.shop-button:hover,
-.tab-button:hover,
-.file-pick:hover {
+body.theme-bodhi-shop .audio-button:hover,
+body.theme-bodhi-shop .guide-button:hover,
+body.theme-bodhi-shop .ghost-button:hover,
+body.theme-bodhi-shop .primary-action:hover,
+body.theme-bodhi-shop .soft-action:hover,
+body.theme-bodhi-shop .shop-button:hover,
+body.theme-bodhi-shop .tab-button:hover,
+body.theme-bodhi-shop .file-pick:hover {
   transform: translateY(-2px);
   filter: brightness(1.06);
 }
 
-.audio-button:active,
-.guide-button:active,
-.ghost-button:active,
-.primary-action:active,
-.soft-action:active,
-.shop-button:active,
-.tab-button:active,
-.file-pick:active {
+body.theme-bodhi-shop .audio-button:active,
+body.theme-bodhi-shop .guide-button:active,
+body.theme-bodhi-shop .ghost-button:active,
+body.theme-bodhi-shop .primary-action:active,
+body.theme-bodhi-shop .soft-action:active,
+body.theme-bodhi-shop .shop-button:active,
+body.theme-bodhi-shop .tab-button:active,
+body.theme-bodhi-shop .file-pick:active {
   transform: translateY(1px);
   box-shadow: inset 0 -2px 0 rgba(31, 17, 9, 0.26), 0 1px 0 var(--pixel-shadow);
 }
 
-.primary-action:focus-visible,
-.soft-action:focus-visible,
-.shop-button:focus-visible,
-.tab-button:focus-visible,
-.ghost-button:focus-visible,
-.altar:focus-visible,
-.stage-cat.show:focus-visible,
-.file-pick:focus-within,
-.ai-forge input:focus-visible,
-.ai-forge textarea:focus-visible {
+body.theme-bodhi-shop .primary-action:focus-visible,
+body.theme-bodhi-shop .soft-action:focus-visible,
+body.theme-bodhi-shop .shop-button:focus-visible,
+body.theme-bodhi-shop .tab-button:focus-visible,
+body.theme-bodhi-shop .ghost-button:focus-visible,
+body.theme-bodhi-shop .altar:focus-visible,
+body.theme-bodhi-shop .stage-cat.show:focus-visible,
+body.theme-bodhi-shop .file-pick:focus-within,
+body.theme-bodhi-shop .ai-forge input:focus-visible,
+body.theme-bodhi-shop .ai-forge textarea:focus-visible {
   outline: 3px solid var(--jade);
   outline-offset: 2px;
 }
 
-.play-layout {
+body.theme-bodhi-shop .play-layout {
   grid-template-columns: clamp(150px, 13vw, 190px) minmax(0, 1fr) minmax(340px, 410px);
   gap: clamp(8px, 1vw, 14px);
 }
 
-.resource-strip {
+body.theme-bodhi-shop .resource-strip {
   height: 100%;
   min-height: 0;
   align-content: start;
@@ -2151,7 +2150,7 @@ select {
     linear-gradient(180deg, #a96732 0%, #74401f 100%);
 }
 
-.resource-strip::before {
+body.theme-bodhi-shop .resource-strip::before {
   width: calc(100% - 22px);
   height: 18px;
   inset: 9px 11px auto;
@@ -2160,7 +2159,7 @@ select {
     repeating-linear-gradient(90deg, var(--outline) 0 16px, #d79a4e 16px 20px, var(--outline) 20px 36px);
 }
 
-.resource-card {
+body.theme-bodhi-shop .resource-card {
   position: relative;
   min-height: 88px;
   grid-template-columns: 44px minmax(0, 1fr);
@@ -2174,7 +2173,7 @@ select {
   box-shadow: inset 0 -5px 0 rgba(116, 64, 31, 0.18), 0 3px 0 rgba(31, 17, 9, 0.22);
 }
 
-.resource-card::after {
+body.theme-bodhi-shop .resource-card::after {
   content: "";
   position: absolute;
   left: 8px;
@@ -2185,7 +2184,7 @@ select {
   opacity: 0.42;
 }
 
-.resource-card .sprite {
+body.theme-bodhi-shop .resource-card .sprite {
   width: 42px;
   height: 42px;
   padding: 2px;
@@ -2194,31 +2193,31 @@ select {
   box-shadow: 0 2px 0 rgba(31, 17, 9, 0.2);
 }
 
-.resource-card strong,
-.mini-stat strong,
-.progress-label strong,
-.cat-group-panel span,
-.card-meta,
-.next-goal {
+body.theme-bodhi-shop .resource-card strong,
+body.theme-bodhi-shop .mini-stat strong,
+body.theme-bodhi-shop .progress-label strong,
+body.theme-bodhi-shop .cat-group-panel span,
+body.theme-bodhi-shop .card-meta,
+body.theme-bodhi-shop .next-goal {
   font-family: var(--number-font);
   letter-spacing: 0;
 }
 
-.resource-card strong {
+body.theme-bodhi-shop .resource-card strong {
   color: var(--outline);
   font-size: clamp(1rem, 1.45vw, 1.24rem);
   line-height: 1;
   text-shadow: 1px 1px 0 rgba(255, 247, 216, 0.7);
 }
 
-.resource-card small {
+body.theme-bodhi-shop .resource-card small {
   margin-top: 5px;
   color: var(--wood-mid);
   font-size: 0.82rem;
   font-weight: 900;
 }
 
-.stage {
+body.theme-bodhi-shop .stage {
   padding: 12px;
   gap: clamp(10px, 1.5dvh, 16px);
   background:
@@ -2227,7 +2226,7 @@ select {
     linear-gradient(180deg, #b37238 0%, #7a4422 100%);
 }
 
-.stage::before {
+body.theme-bodhi-shop .stage::before {
   width: 90px;
   height: 70px;
   right: 12px;
@@ -2235,7 +2234,7 @@ select {
   opacity: 0.28;
 }
 
-.room-scene {
+body.theme-bodhi-shop .room-scene {
   border: 4px solid var(--outline);
   border-radius: 3px;
   background:
@@ -2245,17 +2244,17 @@ select {
     inset 0 8px 0 rgba(255, 247, 216, 0.08);
 }
 
-.room-scene::before,
-.room-scene::after,
-.stage-sky::before,
-.stage-sky::after {
+body.theme-bodhi-shop .room-scene::before,
+body.theme-bodhi-shop .room-scene::after,
+body.theme-bodhi-shop .stage-sky::before,
+body.theme-bodhi-shop .stage-sky::after {
   content: "";
   position: absolute;
   pointer-events: none;
   image-rendering: pixelated;
 }
 
-.room-scene::before {
+body.theme-bodhi-shop .room-scene::before {
   left: 3%;
   right: 3%;
   top: 10%;
@@ -2269,7 +2268,7 @@ select {
   opacity: 0.76;
 }
 
-.room-scene::after {
+body.theme-bodhi-shop .room-scene::after {
   left: 0;
   right: 0;
   bottom: 0;
@@ -2282,7 +2281,7 @@ select {
   border-top: 4px solid var(--outline);
 }
 
-.stage-sky {
+body.theme-bodhi-shop .stage-sky {
   top: 10%;
   right: 5%;
   left: auto;
@@ -2295,7 +2294,7 @@ select {
   box-shadow: inset 0 0 0 4px rgba(255, 247, 216, 0.1), 0 4px 0 rgba(31, 17, 9, 0.26);
 }
 
-.stage-sky::before {
+body.theme-bodhi-shop .stage-sky::before {
   inset: 10px;
   background:
     linear-gradient(90deg, transparent 0 46%, rgba(255, 247, 216, 0.16) 46% 50%, transparent 50%),
@@ -2303,7 +2302,7 @@ select {
     linear-gradient(135deg, transparent 0 14%, rgba(73, 191, 147, 0.72) 14% 17%, transparent 17% 38%, rgba(246, 194, 92, 0.76) 38% 41%, transparent 41% 65%, rgba(255, 241, 197, 0.6) 65% 68%, transparent 68%);
 }
 
-.stage-sky::after {
+body.theme-bodhi-shop .stage-sky::after {
   right: 10px;
   bottom: 8px;
   width: 54px;
@@ -2314,7 +2313,7 @@ select {
   opacity: 0.74;
 }
 
-.stage-rail {
+body.theme-bodhi-shop .stage-rail {
   left: 0;
   right: 0;
   top: 44%;
@@ -2326,7 +2325,7 @@ select {
     linear-gradient(180deg, #b87639, #6d391d);
 }
 
-.stage-rail::before {
+body.theme-bodhi-shop .stage-rail::before {
   content: "";
   position: absolute;
   left: 7%;
@@ -2339,23 +2338,23 @@ select {
   opacity: 0.56;
 }
 
-.decor-layer {
+body.theme-bodhi-shop .decor-layer {
   inset: 9px 16px 7px;
 }
 
-.cat-layer {
+body.theme-bodhi-shop .cat-layer {
   inset: 0 20px 8px;
 }
 
-.stage-cat {
+body.theme-bodhi-shop .stage-cat {
   filter: drop-shadow(0 3px 0 rgba(31, 17, 9, 0.32));
 }
 
-.stage-cat.show:hover {
+body.theme-bodhi-shop .stage-cat.show:hover {
   outline: 3px solid rgba(73, 191, 147, 0.82);
 }
 
-.cat-group-chip {
+body.theme-bodhi-shop .cat-group-chip {
   bottom: -2px;
   border-color: var(--outline);
   border-radius: 3px;
@@ -2365,7 +2364,7 @@ select {
   box-shadow: 0 3px 0 rgba(31, 17, 9, 0.24);
 }
 
-.cat-group-panel {
+body.theme-bodhi-shop .cat-group-panel {
   right: 12px;
   bottom: 12px;
   border-width: 3px;
@@ -2374,15 +2373,15 @@ select {
     linear-gradient(180deg, rgba(255, 247, 216, 0.96), rgba(226, 188, 120, 0.94));
 }
 
-.cat-group-panel strong {
+body.theme-bodhi-shop .cat-group-panel strong {
   color: var(--outline);
 }
 
-.cat-group-panel span {
+body.theme-bodhi-shop .cat-group-panel span {
   color: var(--wood-mid);
 }
 
-.station-zone {
+body.theme-bodhi-shop .station-zone {
   position: relative;
   min-height: clamp(148px, 21dvh, 224px);
   margin-top: clamp(10px, 2vh, 26px);
@@ -2392,7 +2391,7 @@ select {
     repeating-linear-gradient(90deg, rgba(59, 29, 16, 0.12) 0 4px, transparent 4px 34px);
 }
 
-.station-zone::before {
+body.theme-bodhi-shop .station-zone::before {
   content: "";
   position: absolute;
   left: 7%;
@@ -2407,28 +2406,28 @@ select {
   box-shadow: inset 0 -7px 0 rgba(31, 17, 9, 0.2), 0 5px 0 rgba(31, 17, 9, 0.2);
 }
 
-.altar {
+body.theme-bodhi-shop .altar {
   z-index: 2;
   width: min(56vw, 46dvh, 510px);
 }
 
-.altar:hover .station-art,
-.altar.polishing .station-art {
+body.theme-bodhi-shop .altar:hover .station-art,
+body.theme-bodhi-shop .altar.polishing .station-art {
   filter: drop-shadow(0 8px 0 rgba(31, 17, 9, 0.24)) brightness(1.04);
 }
 
-.altar-bracelet {
+body.theme-bodhi-shop .altar-bracelet {
   filter: drop-shadow(0 3px 0 rgba(31, 17, 9, 0.24));
 }
 
-.altar.polishing .altar-bracelet {
+body.theme-bodhi-shop .altar.polishing .altar-bracelet {
   filter:
     drop-shadow(0 0 0 var(--gold))
     drop-shadow(0 0 10px rgba(246, 194, 92, 0.84))
     brightness(1.08);
 }
 
-.altar-core {
+body.theme-bodhi-shop .altar-core {
   border-color: var(--outline);
   border-radius: 3px;
   background:
@@ -2437,43 +2436,43 @@ select {
   box-shadow: inset 0 -4px 0 rgba(116, 64, 31, 0.14), 0 4px 0 rgba(31, 17, 9, 0.22);
 }
 
-.altar-core b {
+body.theme-bodhi-shop .altar-core b {
   color: var(--outline);
 }
 
-.altar-core small {
+body.theme-bodhi-shop .altar-core small {
   color: var(--jade-deep);
 }
 
-.altar-core em {
+body.theme-bodhi-shop .altar-core em {
   color: var(--seal);
 }
 
-.soft-action,
-.primary-action,
-.shop-button {
+body.theme-bodhi-shop .soft-action,
+body.theme-bodhi-shop .primary-action,
+body.theme-bodhi-shop .shop-button {
   color: var(--outline);
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.18) 0 4px, transparent 4px 18px),
     linear-gradient(180deg, #ffd977 0%, #c7802f 100%);
 }
 
-.primary-action,
-.shop-button.has-upgrade,
-.soft-action.has-upgrade {
+body.theme-bodhi-shop .primary-action,
+body.theme-bodhi-shop .shop-button.has-upgrade,
+body.theme-bodhi-shop .soft-action.has-upgrade {
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.18) 0 4px, transparent 4px 18px),
     linear-gradient(180deg, #f6cf69 0%, #b9662a 100%);
 }
 
-.shop-button.secondary {
+body.theme-bodhi-shop .shop-button.secondary {
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.14) 0 4px, transparent 4px 18px),
     linear-gradient(180deg, #8ed9b6 0%, #27846c 100%);
   color: var(--paper-soft);
 }
 
-.progress-wrap {
+body.theme-bodhi-shop .progress-wrap {
   padding: 10px 12px 12px;
   border: 3px solid var(--outline);
   border-radius: 3px;
@@ -2483,15 +2482,15 @@ select {
   box-shadow: inset 0 -5px 0 rgba(116, 64, 31, 0.16), 0 3px 0 rgba(31, 17, 9, 0.2);
 }
 
-.progress-label {
+body.theme-bodhi-shop .progress-label {
   color: var(--outline);
 }
 
-.progress-label strong {
+body.theme-bodhi-shop .progress-label strong {
   color: var(--jade-deep);
 }
 
-.progress-frame {
+body.theme-bodhi-shop .progress-frame {
   height: 20px;
   padding: 3px;
   border: 3px solid var(--outline);
@@ -2500,18 +2499,18 @@ select {
   box-shadow: inset 0 2px 0 rgba(0, 0, 0, 0.2);
 }
 
-.progress-frame #auraFill {
+body.theme-bodhi-shop .progress-frame #auraFill {
   border-radius: 0;
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.32) 0 9px, transparent 9px 18px),
     linear-gradient(90deg, var(--jade-deep) 0%, var(--jade) 45%, var(--gold) 100%);
 }
 
-.next-goal {
+body.theme-bodhi-shop .next-goal {
   color: var(--wood-dark);
 }
 
-.side-panel {
+body.theme-bodhi-shop .side-panel {
   padding: 10px;
   border-color: var(--outline);
   background:
@@ -2520,13 +2519,13 @@ select {
     linear-gradient(180deg, #b36e34 0%, #70401f 100%);
 }
 
-.tabbar {
+body.theme-bodhi-shop .tabbar {
   gap: 7px;
   margin-bottom: 12px;
   padding: 0 5px;
 }
 
-.tab-button {
+body.theme-bodhi-shop .tab-button {
   min-height: 44px;
   border-width: 3px;
   color: #4d2715;
@@ -2535,7 +2534,7 @@ select {
   box-shadow: inset 0 -5px 0 rgba(31, 17, 9, 0.2), 0 4px 0 rgba(31, 17, 9, 0.32);
 }
 
-.tab-button.active {
+body.theme-bodhi-shop .tab-button.active {
   color: var(--paper-soft);
   background:
     linear-gradient(180deg, #59c89a 0 70%, #1f6f60 70% 100%);
@@ -2545,31 +2544,31 @@ select {
     0 4px 0 rgba(31, 17, 9, 0.32);
 }
 
-.panel-view {
+body.theme-bodhi-shop .panel-view {
   padding-right: 5px;
   scrollbar-color: var(--gold) var(--wood-dark);
 }
 
-.panel-view::-webkit-scrollbar {
+body.theme-bodhi-shop .panel-view::-webkit-scrollbar {
   width: 12px;
 }
 
-.panel-view::-webkit-scrollbar-track {
+body.theme-bodhi-shop .panel-view::-webkit-scrollbar-track {
   background: var(--wood-dark);
 }
 
-.panel-view::-webkit-scrollbar-thumb {
+body.theme-bodhi-shop .panel-view::-webkit-scrollbar-thumb {
   border: 3px solid var(--wood-dark);
   background: var(--gold);
 }
 
-.ai-forge,
-.shop-card,
-.wish-card,
-.bead-card,
-.decor-card,
-.paw-panel,
-.paw-talent-card {
+body.theme-bodhi-shop .ai-forge,
+body.theme-bodhi-shop .shop-card,
+body.theme-bodhi-shop .wish-card,
+body.theme-bodhi-shop .bead-card,
+body.theme-bodhi-shop .decor-card,
+body.theme-bodhi-shop .paw-panel,
+body.theme-bodhi-shop .paw-talent-card {
   border-color: var(--outline);
   border-radius: 3px;
   background:
@@ -2578,15 +2577,15 @@ select {
   box-shadow: inset 0 -5px 0 rgba(116, 64, 31, 0.16), 0 3px 0 rgba(31, 17, 9, 0.2);
 }
 
-.ai-forge {
+body.theme-bodhi-shop .ai-forge {
   padding: 10px;
 }
 
-.card-title {
+body.theme-bodhi-shop .card-title {
   color: var(--outline);
 }
 
-.card-title span:last-child {
+body.theme-bodhi-shop .card-title span:last-child {
   flex: 0 0 auto;
   padding: 1px 6px;
   border: 2px solid var(--outline-soft);
@@ -2595,16 +2594,16 @@ select {
   font-size: 0.78rem;
 }
 
-.card-meta,
-.ai-forge small {
+body.theme-bodhi-shop .card-meta,
+body.theme-bodhi-shop .ai-forge small {
   color: #65401f;
 }
 
-.ai-forge input[type="text"],
-.ai-forge input[type="url"],
-.ai-forge select,
-.ai-forge textarea,
-.save-export-card textarea {
+body.theme-bodhi-shop .ai-forge input[type="text"],
+body.theme-bodhi-shop .ai-forge input[type="url"],
+body.theme-bodhi-shop .ai-forge select,
+body.theme-bodhi-shop .ai-forge textarea,
+body.theme-bodhi-shop .save-export-card textarea {
   border-color: var(--outline);
   border-radius: 3px;
   background:
@@ -2613,7 +2612,7 @@ select {
   color: var(--outline);
 }
 
-.file-pick {
+body.theme-bodhi-shop .file-pick {
   min-height: 44px;
   border-color: var(--outline);
   border-radius: 3px;
@@ -2624,15 +2623,15 @@ select {
   box-shadow: inset 0 -4px 0 rgba(116, 64, 31, 0.14), 0 2px 0 rgba(31, 17, 9, 0.18);
 }
 
-.shop-card .sprite,
-.bead-card .sprite,
-.bead-card .bracelet-sprite,
-.decor-card .decor-sprite {
+body.theme-bodhi-shop .shop-card .sprite,
+body.theme-bodhi-shop .bead-card .sprite,
+body.theme-bodhi-shop .bead-card .bracelet-sprite,
+body.theme-bodhi-shop .decor-card .decor-sprite {
   border: 2px solid rgba(59, 29, 16, 0.68);
   background-color: rgba(255, 241, 197, 0.56);
 }
 
-.bead-card.active-bead {
+body.theme-bodhi-shop .bead-card.active-bead {
   outline: 4px solid rgba(73, 191, 147, 0.72);
   box-shadow:
     inset 0 -5px 0 rgba(116, 64, 31, 0.16),
@@ -2640,7 +2639,7 @@ select {
     0 3px 0 rgba(31, 17, 9, 0.2);
 }
 
-.card-delete-button {
+body.theme-bodhi-shop .card-delete-button {
   left: 7px;
   top: 7px;
   border-radius: 3px;
@@ -2650,22 +2649,22 @@ select {
   color: var(--paper-soft);
 }
 
-.bead-progress,
-.wish-progress {
+body.theme-bodhi-shop .bead-progress,
+body.theme-bodhi-shop .wish-progress {
   border-color: var(--outline);
   border-radius: 3px;
   background: var(--wood-dark);
 }
 
-.bead-progress span,
-.wish-progress span {
+body.theme-bodhi-shop .bead-progress span,
+body.theme-bodhi-shop .wish-progress span {
   border-radius: 0;
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.28) 0 8px, transparent 8px 16px),
     linear-gradient(90deg, var(--jade-deep), var(--jade), var(--gold));
 }
 
-.bottom-dock {
+body.theme-bodhi-shop .bottom-dock {
   padding: 10px 12px;
   gap: 9px;
   background:
@@ -2674,7 +2673,7 @@ select {
     linear-gradient(180deg, #bd7b3d 0%, #76421f 100%);
 }
 
-.mini-stat {
+body.theme-bodhi-shop .mini-stat {
   border-color: var(--outline);
   border-radius: 3px;
   background:
@@ -2683,25 +2682,25 @@ select {
   box-shadow: inset 0 -4px 0 rgba(116, 64, 31, 0.14), 0 2px 0 rgba(31, 17, 9, 0.2);
 }
 
-.mini-stat span {
+body.theme-bodhi-shop .mini-stat span {
   color: var(--wood-mid);
   font-weight: 900;
 }
 
-.mini-stat strong {
+body.theme-bodhi-shop .mini-stat strong {
   color: var(--outline);
   font-size: 1.02rem;
 }
 
-#resetButton {
+body.theme-bodhi-shop #resetButton {
   background:
     repeating-linear-gradient(90deg, rgba(255, 247, 216, 0.12) 0 4px, transparent 4px 18px),
     linear-gradient(180deg, #c76548 0%, #7f3324 100%);
 }
 
-.toast,
-.guide-card,
-.save-export-card {
+body.theme-bodhi-shop .toast,
+body.theme-bodhi-shop .guide-card,
+body.theme-bodhi-shop .save-export-card {
   border-color: var(--outline);
   border-radius: 3px;
   background:
@@ -2709,24 +2708,24 @@ select {
     linear-gradient(180deg, var(--paper-soft), var(--paper));
 }
 
-.toast {
+body.theme-bodhi-shop .toast {
   color: var(--outline);
   box-shadow: 0 4px 0 rgba(31, 17, 9, 0.3);
 }
 
-.float-pop {
+body.theme-bodhi-shop .float-pop {
   color: var(--gold);
   text-shadow: 2px 2px 0 var(--outline), -1px 0 0 var(--outline);
 }
 
-.guide-backdrop,
-.save-export-layer {
+body.theme-bodhi-shop .guide-backdrop,
+body.theme-bodhi-shop .save-export-layer {
   background:
     repeating-linear-gradient(90deg, rgba(0, 0, 0, 0.14) 0 4px, transparent 4px 12px),
     rgba(25, 14, 9, 0.58);
 }
 
-.guide-spotlight {
+body.theme-bodhi-shop .guide-spotlight {
   border-radius: 3px;
   border-color: var(--gold);
   box-shadow:
@@ -2735,27 +2734,27 @@ select {
     inset 0 0 0 4px rgba(73, 191, 147, 0.44);
 }
 
-.guide-card {
+body.theme-bodhi-shop .guide-card {
   width: min(438px, calc(100vw - 24px));
   box-shadow:
     0 4px 0 var(--pixel-shadow),
     0 12px 0 rgba(31, 17, 9, 0.18);
 }
 
-.guide-card h2,
-.save-export-card h2 {
+body.theme-bodhi-shop .guide-card h2,
+body.theme-bodhi-shop .save-export-card h2 {
   color: var(--outline);
 }
 
-.guide-head small {
+body.theme-bodhi-shop .guide-head small {
   color: var(--seal);
 }
 
-.guide-card p {
+body.theme-bodhi-shop .guide-card p {
   color: #4d2b18;
 }
 
-.guide-hint {
+body.theme-bodhi-shop .guide-hint {
   border-color: var(--outline-soft);
   border-radius: 3px;
   background:
@@ -2764,16 +2763,16 @@ select {
   color: var(--jade-deep);
 }
 
-.guide-dots span {
+body.theme-bodhi-shop .guide-dots span {
   border-color: var(--outline);
   border-radius: 0;
 }
 
-.guide-dots span.active {
+body.theme-bodhi-shop .guide-dots span.active {
   background: var(--jade);
 }
 
-.save-export-card {
+body.theme-bodhi-shop .save-export-card {
   box-shadow:
     0 4px 0 var(--pixel-shadow),
     0 12px 0 rgba(31, 17, 9, 0.18);
@@ -2797,19 +2796,19 @@ select {
   }
 }
 
-.resource-card strong,
-.progress-label strong {
+body.theme-bodhi-shop .resource-card strong,
+body.theme-bodhi-shop .progress-label strong {
   animation: tinyLedgerBounce 3.8s steps(2, end) infinite;
 }
 
-.stage-sky::before {
+body.theme-bodhi-shop .stage-sky::before {
   animation: shopLamp 6.4s steps(2, end) infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  body.theme-bodhi-shop *,
+  body.theme-bodhi-shop *::before,
+  body.theme-bodhi-shop *::after {
     animation-duration: 1ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
@@ -2818,100 +2817,100 @@ select {
 }
 
 @media (max-width: 1180px) {
-  .play-layout {
+  body.theme-bodhi-shop .play-layout {
     grid-template-columns: clamp(132px, 15vw, 170px) minmax(0, 1fr) minmax(320px, 380px);
   }
 
-  .resource-card {
+  body.theme-bodhi-shop .resource-card {
     grid-template-columns: 36px minmax(0, 1fr);
     min-height: 80px;
   }
 
-  .resource-card .sprite {
+  body.theme-bodhi-shop .resource-card .sprite {
     width: 36px;
     height: 36px;
   }
 }
 
 @media (max-width: 980px) {
-  .topbar {
+  body.theme-bodhi-shop .topbar {
     min-height: 0;
   }
 
-  .play-layout {
+  body.theme-bodhi-shop .play-layout {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
   }
 
-  .resource-strip {
+  body.theme-bodhi-shop .resource-strip {
     height: auto;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     grid-auto-rows: auto;
     padding: 10px;
   }
 
-  .resource-card {
+  body.theme-bodhi-shop .resource-card {
     min-height: 64px;
   }
 
-  .stage-sky {
+  body.theme-bodhi-shop .stage-sky {
     width: min(180px, 30%);
   }
 }
 
 @media (max-width: 620px) {
-  body {
+  body.theme-bodhi-shop {
     background:
       linear-gradient(180deg, rgba(18, 48, 71, 0.44) 0 10%, transparent 10%),
       repeating-linear-gradient(90deg, rgba(255, 241, 197, 0.04) 0 2px, transparent 2px 18px),
       linear-gradient(180deg, #6b3d21 0%, #4f2816 100%);
   }
 
-  .game-shell {
+  body.theme-bodhi-shop .game-shell {
     padding: 6px;
     gap: 7px;
   }
 
-  .topbar {
+  body.theme-bodhi-shop .topbar {
     padding: 7px;
   }
 
-  .brand-title-stack {
+  body.theme-bodhi-shop .brand-title-stack {
     padding: 3px 7px 5px;
   }
 
-  .resource-strip {
+  body.theme-bodhi-shop .resource-strip {
     grid-template-columns: 1fr;
     gap: 7px;
     padding: 9px;
   }
 
-  .resource-card {
+  body.theme-bodhi-shop .resource-card {
     grid-template-columns: 38px minmax(0, 1fr);
     min-height: 58px;
     padding: 8px;
   }
 
-  .resource-card .sprite {
+  body.theme-bodhi-shop .resource-card .sprite {
     width: 34px;
     height: 34px;
   }
 
-  .stage {
+  body.theme-bodhi-shop .stage {
     padding: 8px;
   }
 
-  .room-scene {
+  body.theme-bodhi-shop .room-scene {
     min-height: 40dvh;
   }
 
-  .room-scene::before {
+  body.theme-bodhi-shop .room-scene::before {
     left: 2%;
     right: 2%;
     top: 8%;
   }
 
-  .stage-sky {
+  body.theme-bodhi-shop .stage-sky {
     top: 8%;
     right: 4%;
     width: 34%;
@@ -2919,91 +2918,482 @@ select {
     height: 25%;
   }
 
-  .stage-rail {
+  body.theme-bodhi-shop .stage-rail {
     top: 42%;
   }
 
-  .station-zone::before {
+  body.theme-bodhi-shop .station-zone::before {
     left: 2%;
     right: 2%;
   }
 
-  .tabbar {
+  body.theme-bodhi-shop .tabbar {
     gap: 5px;
     padding: 0;
   }
 
-  .tab-button {
+  body.theme-bodhi-shop .tab-button {
     min-height: 44px;
     padding-inline: 4px;
     font-size: 0.9rem;
   }
 
-  .shop-card,
-  .bead-card,
-  .decor-card {
+  body.theme-bodhi-shop .shop-card,
+  body.theme-bodhi-shop .bead-card,
+  body.theme-bodhi-shop .decor-card {
     grid-template-columns: 58px minmax(0, 1fr);
     padding: 8px;
   }
 
-  .bottom-dock {
+  body.theme-bodhi-shop .bottom-dock {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .bottom-dock .ghost-button {
+  body.theme-bodhi-shop .bottom-dock .ghost-button {
     min-height: 44px;
   }
 
-  .guide-actions {
+  body.theme-bodhi-shop .guide-actions {
     grid-template-columns: 1fr 1fr;
   }
 
-  .guide-actions .primary-action {
+  body.theme-bodhi-shop .guide-actions .primary-action {
     grid-column: 1 / -1;
   }
 }
 
 @media (max-width: 980px) {
-  html,
-  body {
+  body.theme-bodhi-shop {
     height: auto;
     min-height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
   }
 
-  .game-shell {
+  body.theme-bodhi-shop .game-shell {
     height: auto;
     min-height: 100dvh;
     overflow: visible;
     grid-template-rows: auto auto auto;
   }
 
-  .play-layout {
+  body.theme-bodhi-shop .play-layout {
     overflow: visible;
     grid-template-rows: auto auto auto;
   }
 
-  .side-panel {
+  body.theme-bodhi-shop .side-panel {
     height: auto;
     min-height: min(680px, 72dvh);
   }
 
-  .panel-view {
+  body.theme-bodhi-shop .panel-view {
     max-height: min(610px, 62dvh);
   }
 }
 
 @media (max-width: 620px) {
-  .play-layout {
+  body.theme-bodhi-shop .play-layout {
     gap: 9px;
   }
 
-  .side-panel {
+  body.theme-bodhi-shop .side-panel {
     min-height: 62dvh;
   }
 
-  .panel-view {
+  body.theme-bodhi-shop .panel-view {
     max-height: 56dvh;
+  }
+}
+
+/* Responsive layout pass: explicit desktop/tablet/phone behavior */
+@media (min-width: 1281px) {
+  body.theme-bodhi-shop .game-shell {
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  body.theme-bodhi-shop .play-layout {
+    grid-template-columns: clamp(160px, 13vw, 192px) minmax(620px, 1fr) minmax(360px, 410px);
+  }
+}
+
+@media (min-width: 981px) and (max-width: 1280px) {
+  body.theme-bodhi-shop .game-shell {
+    padding: 10px;
+  }
+
+  body.theme-bodhi-shop .play-layout {
+    grid-template-columns: clamp(132px, 14vw, 168px) minmax(0, 1fr) minmax(318px, 372px);
+  }
+
+  body.theme-bodhi-shop .resource-strip {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  body.theme-bodhi-shop .resource-card {
+    min-height: 78px;
+    padding-inline: 7px;
+  }
+
+  body.theme-bodhi-shop .stage {
+    grid-template-rows: minmax(260px, 1.55fr) minmax(130px, 0.7fr) auto;
+  }
+
+  body.theme-bodhi-shop .side-panel {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 980px) {
+  body.theme-bodhi-shop {
+    width: 100%;
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.theme-bodhi-shop .game-shell {
+    width: 100%;
+    height: auto;
+    min-height: 100dvh;
+    grid-template-rows: auto auto auto;
+    overflow: visible;
+  }
+
+  body.theme-bodhi-shop .topbar {
+    min-height: auto;
+  }
+
+  body.theme-bodhi-shop .brand-lockup {
+    flex-wrap: wrap;
+  }
+
+  body.theme-bodhi-shop .brand-title-stack {
+    flex: 1 1 280px;
+  }
+
+  body.theme-bodhi-shop .play-layout {
+    overflow: visible;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+  }
+
+  body.theme-bodhi-shop .resource-strip {
+    height: auto;
+    min-height: auto;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-auto-rows: auto;
+    align-content: stretch;
+  }
+
+  body.theme-bodhi-shop .resource-card {
+    min-width: 0;
+  }
+
+  body.theme-bodhi-shop .stage {
+    height: auto;
+    min-height: auto;
+  }
+
+  body.theme-bodhi-shop .side-panel {
+    height: auto;
+    min-height: auto;
+  }
+
+  body.theme-bodhi-shop .panel-view {
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  body.theme-bodhi-shop .bottom-dock {
+    position: static;
+    bottom: auto;
+  }
+}
+
+@media (max-width: 760px) {
+  body.theme-bodhi-shop .game-shell {
+    padding: 7px;
+    gap: 8px;
+  }
+
+  body.theme-bodhi-shop .topbar {
+    padding: 8px;
+  }
+
+  body.theme-bodhi-shop .game-logo {
+    max-height: 62px;
+  }
+
+  body.theme-bodhi-shop .audio-button,
+  body.theme-bodhi-shop .guide-button {
+    flex: 1 1 44px;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  body.theme-bodhi-shop .resource-strip {
+    gap: 6px;
+    padding: 8px;
+  }
+
+  body.theme-bodhi-shop .resource-card {
+    grid-template-columns: 30px minmax(0, 1fr);
+    min-height: 54px;
+    padding: 7px 6px;
+    gap: 6px;
+  }
+
+  body.theme-bodhi-shop .resource-card .sprite {
+    width: 30px;
+    height: 30px;
+  }
+
+  body.theme-bodhi-shop .resource-card strong {
+    font-size: 0.98rem;
+  }
+
+  body.theme-bodhi-shop .resource-card small {
+    margin-top: 2px;
+    font-size: 0.72rem;
+  }
+
+  body.theme-bodhi-shop .stage {
+    grid-template-rows: minmax(360px, 52dvh) minmax(154px, auto) auto;
+  }
+
+  body.theme-bodhi-shop .room-scene {
+    min-height: 360px;
+  }
+
+  body.theme-bodhi-shop .station-zone {
+    min-height: 160px;
+  }
+
+  body.theme-bodhi-shop .side-panel {
+    padding: 8px;
+  }
+
+  body.theme-bodhi-shop .tabbar {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  body.theme-bodhi-shop .tab-button {
+    min-height: 44px;
+  }
+
+  body.theme-bodhi-shop .bottom-dock {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+  }
+
+  body.theme-bodhi-shop .bottom-dock .ghost-button,
+  body.theme-bodhi-shop .mini-stat {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 480px) {
+  body.theme-bodhi-shop .brand-lockup {
+    gap: 7px;
+  }
+
+  body.theme-bodhi-shop .brand-title-stack {
+    flex-basis: 100%;
+  }
+
+  body.theme-bodhi-shop .audio-button,
+  body.theme-bodhi-shop .guide-button {
+    flex: 1 1 0;
+  }
+
+  body.theme-bodhi-shop .resource-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  body.theme-bodhi-shop .resource-card {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+    min-height: 72px;
+  }
+
+  body.theme-bodhi-shop .resource-card strong {
+    font-size: 0.92rem;
+  }
+
+  body.theme-bodhi-shop .stage {
+    grid-template-rows: minmax(350px, 50dvh) minmax(150px, auto) auto;
+  }
+
+  body.theme-bodhi-shop .room-scene {
+    min-height: 350px;
+  }
+
+  body.theme-bodhi-shop .stage-sky {
+    min-width: 96px;
+  }
+
+  body.theme-bodhi-shop .stage-cat {
+    width: clamp(54px, 18vw, 78px);
+  }
+
+  body.theme-bodhi-shop .altar {
+    width: min(100%, 320px);
+  }
+
+  body.theme-bodhi-shop .shop-card,
+  body.theme-bodhi-shop .bead-card,
+  body.theme-bodhi-shop .decor-card {
+    grid-template-columns: 56px minmax(0, 1fr);
+  }
+
+  body.theme-bodhi-shop .card-title {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 360px) {
+  body.theme-bodhi-shop .resource-strip {
+    grid-template-columns: 1fr;
+  }
+
+  body.theme-bodhi-shop .resource-card {
+    grid-template-columns: 30px minmax(0, 1fr);
+    justify-items: stretch;
+    text-align: left;
+    min-height: 52px;
+  }
+
+  body.theme-bodhi-shop .tab-button {
+    font-size: 0.82rem;
+  }
+
+  body.theme-bodhi-shop .stage {
+    padding-inline: 6px;
+  }
+
+  body.theme-bodhi-shop .room-scene,
+  body.theme-bodhi-shop .station-zone,
+  body.theme-bodhi-shop .progress-wrap,
+  body.theme-bodhi-shop .ritual-bar {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  body.theme-bodhi-shop .altar {
+    width: min(100%, 300px);
+  }
+}
+
+@media (max-width: 980px) and (orientation: landscape) {
+  body.theme-bodhi-shop .game-shell {
+    gap: 7px;
+  }
+
+  body.theme-bodhi-shop .play-layout {
+    grid-template-columns: minmax(118px, 0.28fr) minmax(0, 1fr);
+    grid-template-rows: auto auto;
+  }
+
+  body.theme-bodhi-shop .resource-strip {
+    grid-template-columns: 1fr;
+    grid-row: 1;
+  }
+
+  body.theme-bodhi-shop .stage {
+    grid-row: 1;
+    grid-template-rows: minmax(250px, 58dvh) minmax(118px, auto) auto;
+  }
+
+  body.theme-bodhi-shop .side-panel {
+    grid-column: 1 / -1;
+  }
+
+  body.theme-bodhi-shop .bottom-dock {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) repeat(3, minmax(78px, auto));
+  }
+}
+
+/* Theme system: classic remains the default game layout. */
+body.theme-classic .play-layout {
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 410px);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+body.theme-classic .resource-strip {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body.theme-classic .stage {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+body.theme-classic .side-panel {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.theme-card.active-theme {
+  outline: 4px solid rgba(68, 184, 121, 0.5);
+}
+
+.theme-card.active-theme .card-title span:last-child {
+  color: var(--jade-deep);
+}
+
+@media (max-width: 980px) {
+  html,
+  body.theme-classic {
+    height: auto;
+    min-height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  body.theme-classic .game-shell {
+    height: auto;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  body.theme-classic .play-layout {
+    overflow: visible;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  body.theme-classic .resource-strip,
+  body.theme-classic .stage,
+  body.theme-classic .side-panel {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  body.theme-classic .side-panel {
+    height: auto;
+    min-height: 58dvh;
+  }
+
+  body.theme-classic .panel-view {
+    max-height: 54dvh;
+  }
+}
+
+@media (max-width: 620px) {
+  body.theme-classic .resource-strip {
+    gap: 6px;
+  }
+
+  body.theme-classic .bottom-dock {
+    position: static;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
