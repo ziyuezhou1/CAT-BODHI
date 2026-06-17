@@ -98,14 +98,7 @@ button {
 }
 
 .pixel-panel::before {
-  width: 78px;
-  height: 78px;
-  right: 8px;
-  top: -12px;
-  background-image: var(--ui-panel-corner);
-  background-size: contain;
-  background-position: center;
-  opacity: 0.7;
+  display: none;
 }
 
 .pixel-panel::after {
@@ -190,8 +183,8 @@ button {
 }
 
 .ui-emblem {
+  display: none;
   flex: 0 0 auto;
-  background-image: var(--ui-panel-corner);
   background-repeat: no-repeat;
   background-size: contain;
   background-position: center;
