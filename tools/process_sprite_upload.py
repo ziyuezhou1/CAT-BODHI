@@ -75,6 +75,116 @@ def border_connected_mask(mask: np.ndarray) -> np.ndarray:
     return np.isin(labels, border_labels).astype(np.uint8) * 255
 
 
+def large_enclosed_background_mask(foreground_masks: list[np.ndarray], min_area: int) -> np.ndarray:
+    """Find large chroma-key holes sealed off from the image border by ring-shaped sprites."""
+    if not foreground_masks:
+        raise ValueError("at least one foreground mask is required")
+
+    height, width = foreground_masks[0].shape
+    result = np.zeros((height, width), dtype=np.uint8)
+    min_component_area = max(min_area * 4, int(height * width * 0.02))
+    min_component_width = max(8, int(width * 0.16))
+    min_component_height = max(8, int(height * 0.16))
+
+    for foreground in foreground_masks:
+        if foreground.shape != (height, width):
+            raise ValueError("foreground masks must have matching dimensions")
+
+        background = (foreground == 0).astype(np.uint8)
+        count, labels, stats, _ = cv2.connectedComponentsWithStats(background, connectivity=8)
+        border_labels = set(np.unique(np.concatenate([
+            labels[0, :],
+            labels[-1, :],
+            labels[:, 0],
+            labels[:, -1],
+        ])).tolist())
+
+        for index in range(1, count):
+            if index in border_labels:
+                continue
+            _, _, component_width, component_height, area = stats[index]
+            if (
+                int(area) >= min_component_area
+                and int(component_width) >= min_component_width
+                and int(component_height) >= min_component_height
+            ):
+                result[labels == index] = 255
+
+    return result
+
+
+def enclosed_center_background_mask(
+    rgb: np.ndarray,
+    alpha: np.ndarray,
+    min_area: int,
+) -> tuple[np.ndarray, tuple[int, int, int] | None]:
+    """Find a large center region matching an imported bracelet's own background color."""
+    height, width = alpha.shape
+    result = np.zeros((height, width), dtype=np.uint8)
+    half_sample = max(3, int(min(height, width) * 0.04))
+    center_y, center_x = height // 2, width // 2
+    y0, y1 = max(0, center_y - half_sample), min(height, center_y + half_sample + 1)
+    x0, x1 = max(0, center_x - half_sample), min(width, center_x + half_sample + 1)
+    sample_mask = alpha[y0:y1, x0:x1] > 8
+    if int(sample_mask.sum()) < max(9, min_area // 8):
+        return result, None
+
+    center_color = tuple(np.median(rgb[y0:y1, x0:x1][sample_mask], axis=0).astype(int).tolist())
+    center_bgr = np.uint8([[list(center_color)[::-1]]])
+    target_hsv = cv2.cvtColor(center_bgr, cv2.COLOR_BGR2HSV)[0, 0].astype(np.float32)
+    target_lab = cv2.cvtColor(center_bgr, cv2.COLOR_BGR2LAB)[0, 0].astype(np.float32)
+
+    hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV).astype(np.float32)
+    lab = cv2.cvtColor(rgb, cv2.COLOR_RGB2LAB).astype(np.float32)
+    rgb_delta = np.abs(rgb.astype(np.int16) - np.array(center_color, dtype=np.int16))
+    rgb_close = np.all(rgb_delta <= 42, axis=2)
+    hue_close = np.zeros(alpha.shape, dtype=bool)
+    if target_hsv[1] > 25:
+        hue_close = (
+            (hue_distance(hsv[:, :, 0], float(target_hsv[0])) <= 22)
+            & (hsv[:, :, 1] >= max(20.0, float(target_hsv[1]) * 0.25))
+            & (hsv[:, :, 2] >= 20)
+        )
+    chroma_distance = np.hypot(lab[:, :, 1] - target_lab[1], lab[:, :, 2] - target_lab[2])
+    matching_shadow = (
+        (chroma_distance <= 14)
+        & (lab[:, :, 0] <= target_lab[0] + 25)
+        & (lab[:, :, 0] >= max(0.0, float(target_lab[0]) - 115))
+    )
+    candidate = ((alpha > 8) & (rgb_close | hue_close | matching_shadow)).astype(np.uint8)
+    candidate = cv2.morphologyEx(
+        candidate,
+        cv2.MORPH_CLOSE,
+        np.ones((3, 3), np.uint8),
+        iterations=2,
+    )
+
+    count, labels, stats, _ = cv2.connectedComponentsWithStats(candidate, connectivity=8)
+    border_labels = set(np.unique(np.concatenate([
+        labels[0, :],
+        labels[-1, :],
+        labels[:, 0],
+        labels[:, -1],
+    ])).tolist())
+    center_labels = set(np.unique(labels[y0:y1, x0:x1]).tolist())
+    min_component_area = max(min_area * 4, int(height * width * 0.02))
+    min_component_width = max(8, int(width * 0.16))
+    min_component_height = max(8, int(height * 0.16))
+
+    for index in center_labels:
+        if index == 0 or index in border_labels or index >= count:
+            continue
+        _, _, component_width, component_height, area = stats[index]
+        if (
+            int(area) >= min_component_area
+            and int(component_width) >= min_component_width
+            and int(component_height) >= min_component_height
+        ):
+            result[labels == index] = 255
+
+    return result, center_color
+
+
 def green_screen_foreground_mask(rgb: np.ndarray, bg_color: tuple[int, int, int], threshold: int) -> np.ndarray:
     hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV).astype(np.float32)
     h, s, v = hsv[:, :, 0], hsv[:, :, 1], hsv[:, :, 2]
@@ -178,13 +288,27 @@ def main():
     raw_alpha = rgba[:, :, 3]
 
     green_key = False
+    background_color = None
     component_mask = None
+    enclosed_background = None
     if has_useful_alpha(raw_alpha, args.min_area):
-        final_mask = raw_alpha
+        final_mask = raw_alpha.copy()
         component_mask = raw_alpha
         source = "input-alpha"
+        if args.kind == "bead":
+            enclosed_background, background_color = enclosed_center_background_mask(
+                rgb,
+                raw_alpha,
+                args.min_area,
+            )
+            Image.fromarray(enclosed_background).save(out_dir / "debug_enclosed_background_mask.png")
+            if np.any(enclosed_background > 0):
+                final_mask[enclosed_background > 0] = 0
+                green_key = bg_is_green_key(background_color)
+                source = f"input-alpha-background-rgb{background_color}"
     else:
         bg_color = detect_background(rgb)
+        background_color = bg_color
         green_key = bg_is_green_key(bg_color)
         rgb_mask = tools["chroma_key_mask_rgb"](rgb, bg_color, args.chroma_threshold)
         hsv_mask = tools["chroma_key_mask"](rgb, bg_color, args.chroma_threshold)
@@ -192,6 +316,9 @@ def main():
         Image.fromarray(rgb_mask).save(out_dir / "debug_chroma_rgb_mask.png")
         Image.fromarray(hsv_mask).save(out_dir / "debug_chroma_hsv_mask.png")
         Image.fromarray(green_mask).save(out_dir / "debug_green_connected_mask.png")
+        if args.kind == "bead":
+            enclosed_background = large_enclosed_background_mask([rgb_mask, hsv_mask], args.min_area)
+            Image.fromarray(enclosed_background).save(out_dir / "debug_enclosed_background_mask.png")
 
         final_mask = green_mask if green_key else rgb_mask
         component_mask = green_mask if green_key else final_mask
@@ -204,6 +331,10 @@ def main():
             Image.fromarray(unet_mask).save(out_dir / "debug_unet_mask.png")
             final_mask = final_mask.copy()
             final_mask[final_mask == 0] = unet_mask[final_mask == 0]
+
+        if enclosed_background is not None:
+            # Preserve the connected ring for component selection, but never let U-Net refill its background hole.
+            final_mask[enclosed_background > 0] = 0
 
     if args.feather > 0:
         final_mask = tools["edge_feather"](final_mask, args.feather)
@@ -219,7 +350,7 @@ def main():
     final_rgba[:, :, 3] = final_mask
 
     if green_key:
-        final_rgba = tools["despill_green"](final_rgba, (4, 249, 14), 0.9)
+        final_rgba = tools["despill_green"](final_rgba, background_color or (4, 249, 14), 0.9)
 
     if component_mask is None:
         component_mask = final_mask

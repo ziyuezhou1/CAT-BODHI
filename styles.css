@@ -619,6 +619,7 @@ button {
   touch-action: none;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: none;
 }
 
 .altar:active,
@@ -708,8 +709,8 @@ button {
 }
 
 .station-zone {
-  min-height: clamp(132px, 20dvh, 210px);
-  margin-top: clamp(14px, 2.8dvh, 34px);
+  min-height: 132px;
+  margin-top: 0;
   display: grid;
   grid-template-rows: minmax(0, 1fr) auto;
   justify-items: center;
@@ -1616,8 +1617,7 @@ button:disabled.has-upgrade::after {
   }
 
   .station-zone {
-    min-height: clamp(126px, 19dvh, 190px);
-    margin-top: clamp(12px, 2.4dvh, 28px);
+    min-height: 126px;
     gap: 10px;
   }
 
@@ -1728,8 +1728,7 @@ button:disabled.has-upgrade::after {
   }
 
   .station-zone {
-    min-height: clamp(132px, 23dvh, 226px);
-    margin-top: clamp(10px, 2dvh, 22px);
+    min-height: 132px;
     padding-inline: 2px;
     gap: 8px;
   }
@@ -1856,8 +1855,7 @@ button:disabled.has-upgrade::after {
   }
 
   .station-zone {
-    min-height: clamp(154px, 25dvh, 246px);
-    margin-top: clamp(10px, 2dvh, 22px);
+    min-height: 154px;
   }
 
   .side-panel {
@@ -2376,8 +2374,6 @@ body.theme-bodhi-shop .cat-group-panel span {
 
 body.theme-bodhi-shop .station-zone {
   position: relative;
-  min-height: clamp(148px, 21dvh, 224px);
-  margin-top: clamp(10px, 2vh, 26px);
   padding: 8px 10px 2px;
   background:
     linear-gradient(180deg, transparent 0 20%, rgba(59, 29, 16, 0.18) 20% 24%, transparent 24%),

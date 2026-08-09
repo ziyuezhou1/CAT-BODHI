@@ -345,12 +345,14 @@ let braceletRotation = 0;
 const polishingState = {
   active: false,
   pointerId: null,
+  captureTarget: null,
   lastAngle: 0,
   progressDegrees: 0,
   moved: false,
   patinaChanged: false,
 };
 const POLISH_STEP_DEGREES = 38;
+const DECOR_BRACELET_CLEARANCE = 10;
 const catDragState = {
   active: false,
   pointerId: null,
@@ -460,19 +462,19 @@ const SPRITE_STYLE_PROMPTS = {
   cat: [
     "请参考我附上的现实猫咪照片，保留猫咪最有辨识度的毛色、脸部花纹、眼神印象、耳朵/尾巴轮廓和体型比例。",
     "目标：生成一张可直接用于《猫猫盘珠日记》的三帧猫咪动作 sprite sheet，不是单体单动作。三帧必须都是同一只参考猫，只改变动作，不改变花色和体型。",
-    "动作与排列：横向一排 3 个独立 sprite，左边是 sit/idle 坐姿，中间是 jump/play 跳跃姿势，右边是 lie/rest 趴卧姿势。每帧之间留足纯绿色间隔，三只猫不要接触、不要重叠。",
+    "动作与排列：横向一排 3 个独立 sprite，左边是 sit/idle 坐姿，中间是 jump/play 跳跃姿势，右边是 lie/rest 趴卧姿势。每帧之间留足纯洋红色 #FF00FF 间隔，三只猫不要接触、不要重叠。",
     "风格：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、少量暖金/青绿色点缀、边缘清晰、可爱但仍像参考照片里的猫。",
     "构图：横向长方形画布或宽画布，全身，3/4 视角，每个动作四周留出安全边距，不要裁切耳朵和尾巴。",
-    "背景：必须使用纯绿色抠图背景 #04F90E，整张图背景必须是单一纯色、平整、无纹理、无阴影、无地面、无渐变、无压暗角；不要透明背景，不要青绿色/薄荷绿渐变。",
-    "禁止：文字、签名、水印、logo、平台标记、豆包AI生成字样、边框、UI、相框、复杂场景、玩具/衣服/道具遮挡猫、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
+    "背景：必须使用纯洋红色抠图背景 #FF00FF，整张图背景必须是单一纯色、平整、无纹理、无阴影、无地面、无渐变、无压暗角；不要透明背景，不要粉色/紫色渐变或其他近似色。",
+    "禁止：文字、签名、水印、logo、平台标记、豆包AI生成字样、边框、UI、相框、复杂场景、玩具/衣服/道具遮挡猫、接近 #FF00FF 的洋红色光效或主体描边、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
     "输出：一张 PNG 三动作 sprite sheet，主体清晰，适合后续按帧抠背景并裁切成 128x128 游戏 sprite。",
   ].join("\n"),
   bead: [
     "请参考我附上的现实文玩/手串照片，保留珠子的材质、颜色、纹理、孔道、绳结/隔珠关系，以及最有辨识度的包浆或花纹。",
     "目标：生成一张可直接用于《猫猫盘珠日记》的单体文玩手串 sprite。风格必须匹配当前游戏素材：温暖复古像素风、文玩小铺氛围、低分辨率游戏精灵、粗像素块、深棕色外轮廓、暖金与青绿色点缀、边缘清晰、材质特征可读。",
     "构图：正方形画布，完整圆形或椭圆形手串，居中，俯视或轻微 3/4 视角，所有珠子属于同一串，整体轮廓尽量连贯，四周留出安全边距。",
-    "背景：必须使用纯绿色抠图背景 #04F90E，整张图背景必须是单一纯色、平整、无纹理、无阴影、无桌面、无渐变、无压暗角；不要透明背景，不要青绿色/薄荷绿渐变。",
-    "禁止：文字、签名、水印、logo、平台标记、豆包AI生成字样、边框、UI、手、桌面、展示盒、散落珠子、复杂场景、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
+    "背景：必须使用纯洋红色抠图背景 #FF00FF，整张图背景必须是单一纯色、平整、无纹理、无阴影、无桌面、无渐变、无压暗角；不要透明背景，不要粉色/紫色渐变或其他近似色。",
+    "禁止：文字、签名、水印、logo、平台标记、豆包AI生成字样、边框、UI、手、桌面、展示盒、散落珠子、复杂场景、接近 #FF00FF 的洋红色光效或主体描边、写实照片质感、3D 渲染、油画、水彩、渐变背景。",
     "输出：一张 PNG 风格图，主体清晰，适合后续抠背景和裁切成 128x128 游戏 sprite。",
   ].join("\n"),
 };
@@ -990,7 +992,12 @@ function startBgmAfterGesture(event) {
 
 function formatNumber(value) {
   if (!Number.isFinite(value)) return "0";
-  if (value < 1000) return value.toFixed(value < 100 ? 1 : 0).replace(/\.0$/, "");
+  if (value < 1000) {
+    const digits = value < 100 ? 1 : 0;
+    const factor = 10 ** digits;
+    const truncated = Math.trunc(value * factor) / factor;
+    return truncated.toFixed(digits).replace(/\.0$/, "");
+  }
 
   const units = ["", "万", "亿", "兆", "京", "垓"];
   let scaled = value;
@@ -1000,9 +1007,11 @@ function formatNumber(value) {
     index += 1;
   }
 
-  if (index === 0) return Math.floor(value).toLocaleString("zh-Hans");
+  if (index === 0) return Math.trunc(value).toLocaleString("zh-Hans");
   const digits = scaled < 10 ? 2 : scaled < 100 ? 1 : 0;
-  return `${scaled.toFixed(digits).replace(/\.0+$/, "")}${units[index]}`;
+  const factor = 10 ** digits;
+  const truncated = Math.trunc(scaled * factor) / factor;
+  return `${truncated.toFixed(digits).replace(/\.0+$/, "")}${units[index]}`;
 }
 
 function randomBodhiVariant() {
@@ -1522,6 +1531,16 @@ function advanceUpgradePace() {
   state.upgradePaceStep = upgradePaceStep(state) + 1;
 }
 
+function pointerInBraceletHitArea(event) {
+  const rect = elements.altarBracelet.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return false;
+  const normalizedX = (event.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+  const normalizedY = (event.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+  const radiusSquared = normalizedX ** 2 + normalizedY ** 2;
+  return radiusSquared >= 0.18 && radiusSquared <= 1.15;
+}
+
+
 function pointerAngle(event) {
   const rect = elements.altarBracelet.getBoundingClientRect();
   const centerX = rect.left + rect.width / 2;
@@ -1558,15 +1577,18 @@ function grantPolish(steps, event, patinaGain = 0) {
 
 function startPolishing(event) {
   if (event.button !== undefined && event.button !== 0) return;
+  if (event.target?.closest?.("[data-stage-decor], [data-stage-cat], button, input, textarea, select, a, label")) return;
+  if (!pointerInBraceletHitArea(event)) return;
   event.preventDefault();
   polishingState.active = true;
   polishingState.pointerId = event.pointerId;
+  polishingState.captureTarget = event.target instanceof Element ? event.target : elements.tapTarget.closest(".stage");
   polishingState.lastAngle = pointerAngle(event);
   polishingState.progressDegrees = 0;
   polishingState.moved = false;
   polishingState.patinaChanged = false;
   elements.tapTarget.classList.add("polishing");
-  elements.tapTarget.setPointerCapture?.(event.pointerId);
+  polishingState.captureTarget?.setPointerCapture?.(event.pointerId);
 }
 
 function rotatePolishing(event) {
@@ -1595,10 +1617,13 @@ function rotatePolishing(event) {
 
 function stopPolishing(event) {
   if (!polishingState.active || polishingState.pointerId !== event.pointerId) return;
+  const pointerId = polishingState.pointerId;
+  const captureTarget = polishingState.captureTarget;
   polishingState.active = false;
   polishingState.pointerId = null;
+  polishingState.captureTarget = null;
   elements.tapTarget.classList.remove("polishing");
-  elements.tapTarget.releasePointerCapture?.(event.pointerId);
+  if (captureTarget?.hasPointerCapture?.(pointerId)) captureTarget.releasePointerCapture(pointerId);
   if (polishingState.moved || polishingState.patinaChanged) {
     saveTimer = 0;
     saveState();
@@ -2519,6 +2544,91 @@ function setDecorPlacementStyle(element, x, bottom) {
   element.style.top = "auto";
 }
 
+
+function decorPlacementOverlapsReservedArea(
+  leftPx,
+  bottomPx,
+  width,
+  height,
+  layerHeight,
+  reservedLeft,
+  reservedTop,
+  reservedRight,
+  reservedBottom,
+) {
+  const top = layerHeight - bottomPx - height;
+  const right = leftPx + width;
+  const bottomEdge = layerHeight - bottomPx;
+  return leftPx < reservedRight && right > reservedLeft && top < reservedBottom && bottomEdge > reservedTop;
+}
+
+
+function constrainDecorPlacement(element, x, bottom, layerRect = elements.decorLayer.getBoundingClientRect()) {
+  const limits = stageElementDragLimits(element, layerRect);
+  const elementRect = element.getBoundingClientRect();
+  const braceletRect = elements.altarBracelet.getBoundingClientRect();
+  const layerWidth = Math.max(1, layerRect.width);
+  const layerHeight = Math.max(1, layerRect.height);
+  const width = elementRect.width;
+  const height = elementRect.height;
+  const maxLeft = Math.max(0, layerWidth - width);
+  const maxBottom = Math.max(0, layerHeight - height);
+  let leftPx = clamp(clamp(x, 0, limits.x) * layerWidth / 100, 0, maxLeft);
+  let bottomPx = clamp(clamp(bottom, 0, limits.bottom) * layerHeight / 100, 0, maxBottom);
+
+  const reservedLeft = clamp(braceletRect.left - layerRect.left - DECOR_BRACELET_CLEARANCE, 0, layerWidth);
+  const reservedTop = clamp(braceletRect.top - layerRect.top - DECOR_BRACELET_CLEARANCE, 0, layerHeight);
+  const reservedRight = clamp(braceletRect.right - layerRect.left + DECOR_BRACELET_CLEARANCE, 0, layerWidth);
+  const reservedBottom = clamp(braceletRect.bottom - layerRect.top + DECOR_BRACELET_CLEARANCE, 0, layerHeight);
+  const overlapsReservedArea = decorPlacementOverlapsReservedArea(
+    leftPx,
+    bottomPx,
+    width,
+    height,
+    layerHeight,
+    reservedLeft,
+    reservedTop,
+    reservedRight,
+    reservedBottom,
+  );
+  if (!overlapsReservedArea || reservedRight <= reservedLeft || reservedBottom <= reservedTop) {
+    return { x: leftPx / layerWidth * 100, bottom: bottomPx / layerHeight * 100 };
+  }
+
+  let bestLeft = leftPx;
+  let bestBottom = bottomPx;
+  let bestDistance = Infinity;
+  for (let index = 0; index < 4; index += 1) {
+    let nextLeft = leftPx;
+    let nextBottom = bottomPx;
+    if (index === 0) nextLeft = reservedLeft - width;
+    if (index === 1) nextLeft = reservedRight;
+    if (index === 2) nextBottom = layerHeight - reservedTop;
+    if (index === 3) nextBottom = layerHeight - reservedBottom - height;
+    if (nextLeft < 0 || nextLeft > maxLeft || nextBottom < 0 || nextBottom > maxBottom) continue;
+    if (decorPlacementOverlapsReservedArea(
+      nextLeft,
+      nextBottom,
+      width,
+      height,
+      layerHeight,
+      reservedLeft,
+      reservedTop,
+      reservedRight,
+      reservedBottom,
+    )) continue;
+    const distance = (nextLeft - leftPx) ** 2 + (nextBottom - bottomPx) ** 2;
+    if (distance >= bestDistance) continue;
+    bestDistance = distance;
+    bestLeft = nextLeft;
+    bestBottom = nextBottom;
+  }
+
+  leftPx = bestLeft;
+  bottomPx = bestBottom;
+  return { x: leftPx / layerWidth * 100, bottom: bottomPx / layerHeight * 100 };
+}
+
 function beginDecorDrag(event) {
   const stageDecor = event.target.closest("[data-stage-decor]");
   if (!stageDecor || !stageDecor.classList.contains("show") || (event.button !== undefined && event.button !== 0)) return;
@@ -2557,8 +2667,9 @@ function moveDecorDrag(event) {
   const bottomPx = layerRect.bottom - event.clientY - decorDragState.offsetBottom;
   const x = clamp((leftPx / Math.max(1, layerRect.width)) * 100, 0, limits.x);
   const bottom = clamp((bottomPx / Math.max(1, layerRect.height)) * 100, 0, limits.bottom);
+  const placement = constrainDecorPlacement(decorDragState.element, x, bottom, layerRect);
 
-  setDecorPlacementStyle(decorDragState.element, x, bottom);
+  setDecorPlacementStyle(decorDragState.element, placement.x, placement.bottom);
 }
 
 function finishDecorDrag(event) {
@@ -2654,6 +2765,17 @@ function renderDecorLayer() {
       return `<span class="decor-sprite ${decor.sprite} stage-decor ${level > 0 ? "show" : ""}" data-stage-decor data-decor="${decor.id}"${placementStyle}></span>`;
     })
     .join("");
+
+  elements.decorLayer.querySelectorAll("[data-stage-decor].show").forEach((element) => {
+    const placement = state.decorationPlacements?.[element.dataset.decor];
+    if (!Number.isFinite(placement?.x) || !Number.isFinite(placement?.bottom)) return;
+    const constrained = constrainDecorPlacement(element, placement.x, placement.bottom);
+    const x = Number(constrained.x.toFixed(2));
+    const bottom = Number(constrained.bottom.toFixed(2));
+    setDecorPlacementStyle(element, x, bottom);
+    if (x === placement.x && bottom === placement.bottom) return;
+    state.decorationPlacements[element.dataset.decor] = { x, bottom };
+  });
 }
 
 function renderShop() {
@@ -3164,11 +3286,13 @@ function bindEvents() {
   document.addEventListener("pointerdown", startBgmAfterGesture, { once: true });
   document.addEventListener("keydown", startBgmAfterGesture, { once: true });
 
-  elements.tapTarget.addEventListener("pointerdown", startPolishing);
+  const stage = elements.tapTarget.closest(".stage");
+  stage?.addEventListener("pointerdown", startPolishing);
   document.addEventListener("pointermove", rotatePolishing);
   document.addEventListener("pointerup", stopPolishing);
   document.addEventListener("pointercancel", stopPolishing);
-  elements.tapTarget.addEventListener("click", (event) => {
+  stage?.addEventListener("click", (event) => {
+    if (event.target?.closest?.("[data-stage-decor], [data-stage-cat]") || !pointerInBraceletHitArea(event)) return;
     if (polishingState.moved) {
       event.preventDefault();
       polishingState.moved = false;
@@ -3176,6 +3300,9 @@ function bindEvents() {
     }
     event.preventDefault();
     showPolishHint();
+  });
+  elements.tapTarget.addEventListener("click", (event) => {
+    if (event.detail === 0) showPolishHint();
   });
   elements.upgradeBraceletButton.addEventListener("click", upgradeBracelet);
   elements.guideButton.addEventListener("click", () => openGuide(0));
